@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Caixanegra quick test</title>
+  <style>
+    #addUnit {
+      position: fixed;
+      border-radius: 50%;
+      bottom: 25px;
+      left: 25px;
+      padding: 25px;
+      background-color: red;
+      user-select: none;
+      box-shadow: 2px 2px 2px rgba(255, 255, 255, 0.15);
+      transition: all 250ms ease-in-out;
+      cursor: pointer;
+    }
+
+    #addUnit span {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: monospace;
+      font-size: 30px;
+      color: white;
+      transform-origin: center center;
+      transition: all 250ms ease-in-out;
+    }
+
+    #addUnit:hover {
+      transform: scale(1.1);
+    }
+
+    #addUnit.-open span {
+      transform: translate(-50%, -50%) rotate(45deg);
+      font-size: 40px;
+    }
+
+    #unitMenu {
+      position: fixed;
+      left: 100px;
+      bottom: 25px;
+      width: 250px;
+      height: 40%;
+      background-color: red;
+      transition: all 250ms ease-in-out;
+      transform: translateY(200%);
+    }
+
+    #unitMenu.-open {
+      transform: translateY(0%);
+    }
+  </style>
+</head>
+<body>
+  <canvas style="position:fixed;top:0px;left:0px;width:100%;height:100%;"></canvas>
+  <div id="addUnit"><span>+</span></div>
+  <div id="unitMenu"></div>
+  <script src="caixanegra.js"></script>
+  <script src="sabertooth.js"></script>
+  <script src="designer.js"></script>
+</body>
+</html>

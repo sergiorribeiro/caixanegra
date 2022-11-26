@@ -1,0 +1,1 @@
+window.Caixanegra = window.Caixanegra || {}
