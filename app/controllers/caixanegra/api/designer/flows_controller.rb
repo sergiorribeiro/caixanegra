@@ -1,18 +1,23 @@
 module Caixanegra
-  module Api
+  module API
     module Designer
-      class FlowsController < ::Caixanegra::ApiController
-        before_action :set_flow
+      class FlowsController < ::Caixanegra::APIController
+        before_action :set_flow, only: %i[show]
 
         def show
           render json: @flow
         end
 
+        def update
+          Caixanegra::Manager.set(params[:id], JSON.parse(request.body.read))
+
+          head :ok
+        end
+
         private
 
         def set_flow
-          #Caixanegra.redis GET FLOW
-          @flow = Flow.find(params[:id])
+          @flow = Caixanegra::Manager.get(params[:id])
         end
       end
     end

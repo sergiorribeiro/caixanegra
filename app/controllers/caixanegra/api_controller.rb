@@ -1,4 +1,4 @@
 module Caixanegra
-  class ApiController < ActionController::API
+  class APIController < ActionController::API
   end
 end

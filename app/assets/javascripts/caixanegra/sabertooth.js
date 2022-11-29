@@ -6,6 +6,9 @@ window.Sabertooth = {
   },
 
   Vector2: class {
+    x;
+    y;
+
     constructor(x, y) {
       this.x = x;
       this.y = y;
@@ -17,12 +20,54 @@ window.Sabertooth = {
       this.y = resultVector.y;
     }
 
+    subtract(vector) {
+      const resultVector = Sabertooth.Vector2.subtract(this, vector);
+      this.x = resultVector.x;
+      this.y = resultVector.y;
+    }
+
     clone() {
       return new Sabertooth.Vector2(this.x, this.y);
     }
 
     static add(vectorA, vectorB) {
       return new Sabertooth.Vector2(vectorA.x + vectorB.x, vectorA.y + vectorB.y);
+    }
+
+    static subtract(vectorA, vectorB) {
+      return new Sabertooth.Vector2(vectorA.x - vectorB.x, vectorA.y - vectorB.y);
+    }
+  },
+
+  Rectangle: class {
+    position;
+    size;
+
+    constructor(position, size) {
+      this.position = position;
+      this.size = size;
+    }
+
+    edges() {
+      return {
+        top: this.position.y,
+        bottom: this.position.y + this.size.y,
+        right: this.position.x + this.size.x,
+        left: this.position.x
+      };
+    }
+
+    intersectionPoint(point) {
+      const checks = {
+        horizontal: point.x >= this.position.x && point.x <= this.position.x + this.size.x,
+        vertical: point.y >= this.position.y && point.y <= this.position.y + this.size.y,
+      };
+
+      if (checks.horizontal && checks.vertical) {
+        return new Sabertooth.Vector2(point.x - this.position.x, point.y - this.position.y);
+      }
+
+      return false;
     }
   },
 
@@ -54,17 +99,15 @@ window.Sabertooth = {
       return Sabertooth.Vector2.add(referential, this.position);
     }
 
-    intersectionPoint(point) {
-      const checks = {
-        horizontal: point.x >= this.position.x && point.x <= this.position.x + this.size.x,
-        vertical: point.y >= this.position.y && point.y <= this.position.y + this.size.y,
-      };
+    getRectangle() {
+      return new Sabertooth.Rectangle(this.position, this.size);
+    }
 
-      if (checks.horizontal && checks.vertical) {
-        return new Sabertooth.Vector2(point.x - this.position.x, point.y - this.position.y);
-      }
-
-      return false;
+    getCenter(referential) {
+      return Sabertooth.Vector2.add(
+        this.getPosition(referential),
+        new Sabertooth.Vector2(this.size.x / 2, this.size.y / 2)
+      );
     }
 
     update() {}
@@ -90,6 +133,10 @@ window.Sabertooth = {
       drawSurface.addEventListener("mouseup", this.#mouseHandler.bind(this));
       drawSurface.addEventListener("mousemove", this.#mouseHandler.bind(this));
       this.enable();
+    }
+
+    clear() {
+      this.#objects = [];
     }
 
     enable() {
@@ -195,7 +242,7 @@ window.Sabertooth = {
       if (objectAtPointer) {
         interactionSnapshot.cursorAt = {
           object: objectAtPointer,
-          intersection: objectAtPointer.intersectionPoint(
+          intersection: objectAtPointer.getRectangle().intersectionPoint(
             new Sabertooth.Vector2(interactionSnapshot.x, interactionSnapshot.y)
           )
         }
@@ -230,7 +277,7 @@ window.Sabertooth = {
 
       for (let oidx = 0; oidx < this.#objects.length; oidx++) {
         const currentObject = this.#objects[oidx];
-        if (currentObject.intersectionPoint(new Sabertooth.Vector2(x, y))) {
+        if (currentObject.getRectangle().intersectionPoint(new Sabertooth.Vector2(x, y))) {
           if (objectFound === null) {
             objectFound = currentObject;
           } else if (objectFound.zIndex > currentObject.zIndex) {

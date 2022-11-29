@@ -1,24 +1,30 @@
 module Caixanegra
   class Manager
-    def handler(flow_definition = {})
-      uid = SecureRandom.uuid.gsub("-", "")
+    class << self
+      def handler(flow_definition = {})
+        uid = SecureRandom.uuid.gsub("-", "")
 
-      Caixanegra.redis.multi do |pipeline|
-        pipeline.hset(:caixanegra, uid, JSON.dump(flow_definition))
-        pipeline.expire(:caixanegra, 1.hour)
+        Caixanegra.redis.multi do |pipeline|
+          pipeline.hset(:caixanegra, uid, JSON.dump(flow_definition))
+          pipeline.expire(:caixanegra, 1.hour)
+        end
+
+        uid
       end
 
-      uid
-    end
+      def destroy
+        Caixanegra.redis.hdel(:caixanegra, key)
+      end
 
-    def destroy
-      Caixanegra.redis.hdel(:caixanegra, key)
-    end
+      def get(uid)
+        value = Caixanegra.redis.hget(:caixanegra, uid)
 
-    def get(uid)
-      value = Caixanegra.redis.hget(:caixanegra, uid)
+        JSON.parse(value) if value.present?
+      end
 
-      JSON.parse(value) if value.present?
+      def set(uid, flow_definition)
+        Caixanegra.redis.hset(:caixanegra, uid, JSON.dump(flow_definition))
+      end
     end
   end
 end
