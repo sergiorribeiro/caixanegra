@@ -5,6 +5,7 @@ window.Caixanegra.Designer = {
     class;
     type;
     exits;
+    mappings;
     connectingExit;
     UNIT_WIDTH;
     MARGIN;
@@ -15,6 +16,7 @@ window.Caixanegra.Designer = {
       this.type = params.type || "unspecified";
       this.class = params.class || "unspecified";
       this.exits = params.exits || [];
+      this.mappings = params.mappings || {};
       this.#drawValues = {};
       this.MARGIN = 10;
       this.UNIT_WIDTH = 300;
@@ -28,24 +30,7 @@ window.Caixanegra.Designer = {
 
       this.size.x = this.UNIT_WIDTH;
       let hCursor = this.#drawValues.position.y;
-
-      switch (this.type) {
-        case "starter":
-          this.#drawValues.unitBgColor = "#65CCA9";
-        break;
-        case "terminator":
-          this.#drawValues.unitBgColor = "#E44";
-        break;
-        case "passthrough":
-          this.#drawValues.unitBgColor = "#EEE";
-        break;
-        case "feeder":
-          this.#drawValues.unitBgColor = "#44E";
-        break;
-        default:
-          this.#drawValues.unitBgColor = "#FFF";
-      }
-
+      this.#drawValues.unitBgColor = Caixanegra.Designer.typeColor(this.type);
       this.#drawValues.text = {};
       this.#drawValues.exitRectangles = [];
 
@@ -173,6 +158,8 @@ window.Caixanegra.Designer = {
     api;
     blocker;
     messenger;
+    unitDetailPane;
+    selectedUnit;
     flowId;
     unitScope;
   
@@ -187,17 +174,22 @@ window.Caixanegra.Designer = {
       this.api = new Caixanegra.API();
       this.blocker = document.querySelector("#blocker");
       this.messenger = document.querySelector("#action_messenger");
+      this.unitDetailPane = document.querySelector("#unitDetail");
       document.querySelector("#save").addEventListener("click", this.saveFlow.bind(this));
       document.querySelector("#addUnit").addEventListener("click", this.toggleUnitMenu.bind(this));
+      document.querySelector("#unitDetailTitle").addEventListener("keyup", this.updateSelectedUnit.bind(this));
       this.toggleBlocker(true, "loading your flow");
       window.addEventListener("resize", this.#windowResized.bind(drawingSurface));
       drawingSurface.addEventListener("update_start", this.#engineUpdate.bind(this));
       drawingSurface.addEventListener("drag_finished", this.#dragFinished.bind(this));
+      drawingSurface.addEventListener("clicked", this.#clicked.bind(this));
       this.#windowResized.bind(drawingSurface)({ target: window });
       this.#units = new Array();
 
+      this.gre.disable();
       this.getUnits();
       this.loadFlow();
+      this.gre.enable();
     }
 
     toggleUnitMenu() {
@@ -222,7 +214,44 @@ window.Caixanegra.Designer = {
     }
 
     flowSnapshot() {
-      console.log(this.#units)
+      const snapshot = {
+        entrypoint: null,
+        units: []
+      };
+
+      this.#units.forEach((unit) => {
+        if (unit.type === "starter" && snapshot.entrypoint !== null) {
+          snapshot.entrypoint = unit.oid;
+        }
+
+        const unitToPush = {
+          oid: unit.oid,
+          class: unit.class,
+          type: unit.type,
+          title: unit.title,
+          position: unit.position.toAnonObject(),
+          exits: [],
+          mappings: {}
+        };
+
+        unit.exits.forEach((exit) => {
+          unitToPush.exits.push({
+            name: exit.name,
+            target: exit?.target?.oid
+          });
+        });
+
+        Object.keys(unit?.mappings || {}).forEach((key) => {
+          unitToPush.mappings[key] = {
+            type: unit.mappings[key].type,
+            value: unit.mappings[key].value
+          }
+        });
+
+        snapshot.units.push(unitToPush);
+      });
+
+      return snapshot;
     }
 
     #extractUnitScope() {
@@ -248,10 +277,16 @@ window.Caixanegra.Designer = {
         unitMenu.innerHTML = "";
         this.#catalog.forEach((unitData) => {
           const item = document.createElement("div");
-          const name = document.createElement("div");
+          const content = document.createElement("div");
+          const colorCode = document.createElement("div");
+          const header = document.createElement("div");
+          const name = document.createElement("span");
+          const type = document.createElement("span");
           const description = document.createElement("div");
-          const type = document.createElement("div");
           item.classList.add("unit");
+          header.classList.add("header");
+          content.classList.add("content");
+          colorCode.classList.add("color-code");
           name.classList.add("name");
           type.classList.add("type");
           description.classList.add("description");
@@ -259,8 +294,11 @@ window.Caixanegra.Designer = {
           name.innerHTML = unitData.title;
           type.innerHTML = unitData.type;
           description.innerHTML = unitData.description;
+          colorCode.style.backgroundColor = Caixanegra.Designer.typeColor(unitData.type);
 
-          item.append(name, type, description);
+          header.append(name, type);
+          content.append(header, description);
+          item.append(colorCode, content);
           item.addEventListener("click", this.createUnit.bind(this, unitData));
           unitMenu.appendChild(item);
         });
@@ -275,8 +313,16 @@ window.Caixanegra.Designer = {
         this.gre.clear();
         this.#units = [];
 
-        console.log(flowData);
-        // loading goodness
+        (flowData?.units || []).forEach((unit) => {
+          this.createUnit(unit);
+        });
+
+        this.#units.forEach((unit) => {
+          (unit?.exits || []).forEach((exit) => {
+            const object = this.#units.find((targetUnit) => targetUnit.oid === exit.target);
+            if (object) { exit.target = object; }
+          });
+        });
 
         this.#loadedComponents.flow = true;
         this.#reveal();
@@ -321,13 +367,40 @@ window.Caixanegra.Designer = {
   
     createUnit(params) {
       const newUnit = new Caixanegra.Designer.Unit({
+        position: new Sabertooth.Vector2(20, 20),
         type: params.type,
         title: params.title,
         class: params.class,
-        exits: params.exits,
       });
 
-      newUnit.position = new Sabertooth.Vector2(20, 20);
+      if (params.oid) {
+        newUnit.oid = params.oid;
+        newUnit.position = new Sabertooth.Vector2(params.position.x, params.position.y);
+        newUnit.title = params.title;  
+      }
+
+      if (params.exits && params.exits.length > 0) {
+        newUnit.exits = params.exits.map((exit) => {
+          const newExit = { name: exit.name };
+          if (exit.target) {
+            newExit.target = exit.target;
+          }
+          return newExit;
+        });
+      }
+
+      const mappingKeys = Object.keys(params?.mappings || {});
+      if (params.mappings && mappingKeys.length > 0) {
+        mappingKeys.forEach((key) => {
+          newUnit.mappings[key] = {};
+          if (params.mappings[key].type) {
+            newUnit.mappings[key].type = params.mappings[key].type;
+          }
+          if (params.mappings[key].value) {
+            newUnit.mappings[key].value = params.mappings[key].value;
+          }
+        });
+      }
 
       this.#units.push(newUnit);
       this.gre.addObject(newUnit);
@@ -356,6 +429,154 @@ window.Caixanegra.Designer = {
       }
     }
 
+    #clicked(ev) {
+      const moments = ev.detail;
+      const endObject = moments.end.cursorAt?.object;
+
+      if (endObject) {
+        this.#fillDetailPane(endObject);
+      } else {
+        const unitMenu = document.querySelector("#unitMenu");
+        const addUnit = document.querySelector("#addUnit");
+
+        this.unitDetailPane.classList.remove("-open");
+        unitMenu.classList.remove("-open");
+        addUnit.classList.remove("-open");
+      }
+    }
+
+    #fillDetailPane(object) {
+      this.selectedUnit = object;
+      const matrix = this.#catalog.find((unit) => unit.type === object.type);
+      const pane = this.unitDetailPane;
+      const dynamicContent = pane.querySelector("#dynamicContent");
+      pane.querySelector(".color-code").style.backgroundColor = Caixanegra.Designer.typeColor(object.type);
+      pane.classList.add("-open");
+      
+      pane.querySelector("#unitDetailTitle").value = object.title;
+      pane.querySelector("#unitDetailClass").innerHTML = matrix.class;
+      pane.querySelector("#unitDetailDescription").innerHTML = matrix.description;
+
+      dynamicContent.innerHTML = "";
+
+      if (Object.keys((matrix?.inputs || {})).length > 0) {
+        const inputsHeader = document.createElement("div");
+        inputsHeader.classList.add("unit-detail-headers");
+        inputsHeader.innerHTML = "input mapping"
+        dynamicContent.appendChild(inputsHeader);
+
+        Object.keys(matrix?.inputs).forEach((key) => {
+          dynamicContent.append(this.#buildInputConfigHandler(key, matrix.inputs[key]));
+        })
+      }
+
+      if ((matrix?.exits || []).length > 0) {
+        const exitsHeader = document.createElement("div");
+        exitsHeader.classList.add("unit-detail-headers");
+        exitsHeader.innerHTML = "exit mapping"
+        dynamicContent.appendChild(exitsHeader);
+
+        unit.exits.forEach((exit) => {
+          
+        });
+      }
+    }
+
+    #buildInputConfigHandler(input, matrix) {
+      const unit = this.selectedUnit;
+      const wrapper = document.createElement("div");
+      const valueWrapper = document.createElement("div");
+      wrapper.classList.add("unit-input");
+      valueWrapper.classList.add("unit-input-value");
+      wrapper.dataset.input = input;
+
+      if(matrix.editable) {
+        const typeSelectorHeader = document.createElement("div");
+        const name = document.createElement("div");
+        name.innerHTML = input;
+        const typeSelector = document.createElement("select");
+        [
+          {value: "carryover", display: "Carry-over"},
+          {value: "user", display: "User"},
+        ].forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.innerHTML = option.display;
+          optionElement.setAttribute("value", option.value);
+          if(unit.mappings[input]?.type === option.value) {
+            optionElement.setAttribute("selected", "selected");
+          }
+          typeSelector.append(optionElement);
+        });
+        typeSelector.addEventListener("change", this.#unitInputTypeChanged.bind(this));
+        typeSelectorHeader.append(name, typeSelector);
+        wrapper.appendChild(typeSelectorHeader);
+
+        switch (matrix.type) {
+          case "string":
+            const valueInput = document.createElement("input");
+            valueInput.value = unit.mappings[input]?.value || matrix.default || "";
+            valueInput.addEventListener("change", this.#unitInputValueChanged.bind(this));
+            if (unit.mappings[input]?.type !== "user") {
+              valueWrapper.classList.add("-disabled");
+            }
+            valueWrapper.appendChild(valueInput);
+            break;
+        }
+
+        wrapper.append(valueWrapper);
+      } else {
+        const typeHeader = document.createElement("div");
+        const name = document.createElement("div");
+        const type = document.createElement("div");
+        name.innerHTML = input;
+        type.innerHTML = "Carry-over";
+        typeHeader.append(name, type);
+      }
+
+      return wrapper;
+    }
+
+    #unitInputValueChanged(ev) {
+      let valueWrapper = ev.target;
+      while (!valueWrapper.classList.contains("unit-input")) {
+        valueWrapper = valueWrapper.parentElement;
+        if (valueWrapper === null) { return null; }
+      }
+
+      const input = valueWrapper.dataset.input;
+      this.selectedUnit.mappings[input] = this.selectedUnit.mappings[input] || {};
+      this.selectedUnit.mappings[input].value = ev.target.value;
+    }
+
+    #unitInputTypeChanged(ev) {
+      let valueWrapper = ev.target;
+
+      while (!valueWrapper.classList.contains("unit-input")) {
+        valueWrapper = valueWrapper.parentElement;
+        if (valueWrapper === null) { return null; }
+      }
+
+      const input = valueWrapper.dataset.input;
+      valueWrapper = valueWrapper.querySelector(".unit-input-value");
+
+      switch (ev.target.value) {
+        case "carryover":
+          valueWrapper.classList.add("-disabled");
+          break;
+        case "user":
+          valueWrapper.classList.remove("-disabled");
+          break;
+      }
+
+      this.selectedUnit.mappings[input] = this.selectedUnit.mappings[input] || {};
+      this.selectedUnit.mappings[input].type = ev.target.value;
+    }
+
+    updateSelectedUnit() {
+      const title = document.querySelector("#unitDetailTitle").value;
+      this.selectedUnit.title = title === "" ? "untitled" : title;
+    }
+
     #engineUpdate(ev) {
       const context = ev.detail;
 
@@ -377,6 +598,21 @@ window.Caixanegra.Designer = {
       this.height = ev.target.innerHeight * Sabertooth.UPSCALE_FACTOR;
       this.style.width = `${this.width / Sabertooth.UPSCALE_FACTOR}px`;
       this.style.height = `${this.height / Sabertooth.UPSCALE_FACTOR}px`;
+    }
+  },
+
+  typeColor: (type) => {
+    switch (type) {
+      case "starter":
+        return "#65CCA9";
+      case "terminator":
+        return "#E44";
+      case "passthrough":
+        return "#EEE";
+      case "feeder":
+        return "#44E";
+      default:
+        return "#FFF";
     }
   }
 }

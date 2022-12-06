@@ -30,6 +30,10 @@ window.Sabertooth = {
       return new Sabertooth.Vector2(this.x, this.y);
     }
 
+    toAnonObject() {
+      return { x: this.x, y: this.y };
+    }
+
     static add(vectorA, vectorB) {
       return new Sabertooth.Vector2(vectorA.x + vectorB.x, vectorA.y + vectorB.y);
     }
@@ -255,7 +259,9 @@ window.Sabertooth = {
         case "mouseup":
           this.#mouse.up = interactionSnapshot;
 
-          const event = new CustomEvent("drag_finished", {
+          const event = new CustomEvent(
+            ( this.#mouse.up.x === this.#mouse.down.x && 
+              this.#mouse.up.y === this.#mouse.down.y) ? "clicked" : "drag_finished", {
             detail: {
               start: this.#mouse.down,
               end: this.#mouse.up

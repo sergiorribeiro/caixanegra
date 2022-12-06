@@ -14,7 +14,7 @@ module Caixanegra
         feeders_carry_over = process_feeders(step_unit)
         step_unit.carry_over(feeders_carry_over)
         result = step_unit.flow
-        carry_over = map_carry_over(step_unit.uid, result)
+        carry_over = map_carry_over(step_unit.oid, result)
         step_unit = next_unit(step_unit, result[:exit_through], carry_over)
       end
 
@@ -23,11 +23,11 @@ module Caixanegra
 
     private
 
-    def map_carry_over(uid, result)
+    def map_carry_over(oid, result)
       mapped_carry_over = {}
       exit_name = result[:exit_through]
       carry_over = result[:carry_over]
-      metadata = unit_metadata(uid)
+      metadata = unit_metadata(oid)
       exit_metadata = metadata[:exits].find { |ex| ex[:name] == exit_name.to_s }
       (exit_metadata[:mappings] || []).each do |mapping|
         mapped_carry_over[mapping[:as].to_sym] = carry_over[*mapping[:use].split(".").map(&:to_sym)]
@@ -37,7 +37,7 @@ module Caixanegra
     end
 
     def next_unit(current_unit, exit_name, carry_over)
-      metadata = unit_metadata(current_unit.uid)
+      metadata = unit_metadata(current_unit.oid)
       exit_metadata = metadata[:exits].find { |ex| ex[:name] == exit_name.to_s }
       unit(exit_metadata[:target], carry_over, current_unit.storage)
     end
@@ -45,32 +45,32 @@ module Caixanegra
     def process_feeders(step_unit)
       carry_over = {}
       flow[:units].filter do |unit|
-        unit[:type] == "feeder" && (unit[:exits] || []).any? { |ex| ex[:target] == step_unit.uid }
+        unit[:type] == "feeder" && (unit[:exits] || []).any? { |ex| ex[:target] == step_unit.oid }
       end.each do |feeder|
         feeder_instance = unit_instance(feeder)
         result = feeder_instance.flow
-        carry_over.merge! map_carry_over(feeder_instance.uid, result)
+        carry_over.merge! map_carry_over(feeder_instance.oid, result)
       end
       carry_over
     end
 
-    def unit_metadata(uid)
-      flow[:units].find { |u| u[:uid] == uid }
+    def unit_metadata(oid)
+      flow[:units].find { |u| u[:oid] == oid }
     end
 
     def start_unit
       unit(flow[:entrypoint])
     end
 
-    def unit(uid, carry_over = {}, storage = {})
-      unit_instance(unit_metadata(uid), carry_over, storage)
+    def unit(oid, carry_over = {}, storage = {})
+      unit_instance(unit_metadata(oid), carry_over, storage)
     end
 
     def unit_instance(unit_data, carry_over = {}, storage = {})
       mappings = unit_data[:mappings] || {}
       unit_class = scoped_units[unit_data[:unit].to_sym]
       inputs = unit_class.inputs
-      unit_class.new(unit_data[:uid], inputs, mappings, carry_over, storage)
+      unit_class.new(unit_data[:oid], inputs, mappings, carry_over, storage)
     end
 
     def scoped_units
@@ -87,7 +87,7 @@ module Caixanegra
         entrypoint: "id1",
         units: [
           {
-            uid: "id1",
+            oid: "id1",
             unit: "start",
             type: "starter",
             position: { x: 0, y: 0 },
@@ -96,7 +96,7 @@ module Caixanegra
             ]
           },
           {
-            uid: "id2",
+            oid: "id2",
             unit: "regexp_match",
             type: "passthrough",
             position: { x: 50, y: 50 },
@@ -115,7 +115,7 @@ module Caixanegra
             ]
           },
           {
-            uid: "id3",
+            oid: "id3",
             type: "terminator",
             unit: "terminate",
             position: { x: 0, y: 0 },

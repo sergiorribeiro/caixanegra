@@ -1,9 +1,9 @@
 module Caixanegra
   class Unit
-    attr_reader :uid, :storage
+    attr_reader :oid, :storage
 
-    def initialize(uid, inputs = {}, mappings = {}, carry_over = {}, storage = {})
-      @uid = uid
+    def initialize(oid, inputs = {}, mappings = {}, carry_over = {}, storage = {})
+      @oid = oid
       @mappings = mappings
       @inputs = inputs
       @carry_over = carry_over
