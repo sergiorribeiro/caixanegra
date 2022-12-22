@@ -215,7 +215,7 @@ window.Caixanegra.Designer = {
 
     flowSnapshot() {
       const snapshot = {
-        entrypoint: null,
+        entrypoint: this.#units.find((unit) => {return unit.type === "starter"})?.oid,
         units: []
       };
 
@@ -237,7 +237,8 @@ window.Caixanegra.Designer = {
         unit.exits.forEach((exit) => {
           unitToPush.exits.push({
             name: exit.name,
-            target: exit?.target?.oid
+            target: exit?.target?.oid,
+            mappings: exit.mappings || []
           });
         });
 
@@ -385,6 +386,9 @@ window.Caixanegra.Designer = {
           if (exit.target) {
             newExit.target = exit.target;
           }
+          if (exit.mappings) {
+            newExit.mappings = exit.mappings;
+          }
           return newExit;
         });
       }
@@ -476,10 +480,77 @@ window.Caixanegra.Designer = {
         exitsHeader.innerHTML = "exit mapping"
         dynamicContent.appendChild(exitsHeader);
 
-        unit.exits.forEach((exit) => {
-          
+        const datalist = document.createElement("datalist");
+        datalist.id = `${object.oid}-target-inputs`;
+        const target_inputs = ["cu", "cona"];
+        target_inputs.forEach((input) => {
+          const option = document.createElement("option");
+          option.setAttribute("value", input);
+          datalist.append(option);
+        });
+
+        object.exits.forEach((exit) => {
+          dynamicContent.append(this.#buildExitConfigHandler(exit));
         });
       }
+    }
+
+    #buildExitConfigHandler(exit) {
+      const unit = this.selectedUnit;
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("unit-exit");
+      wrapper.dataset.exit = exit.name;
+      const name = document.createElement("div");
+      name.innerHTML = exit.name;
+      wrapper.append(name);
+
+      const mappingsWrapper = document.createElement("div");
+      mappingsWrapper.classList.add("mappings");
+
+      (exit.mappings || []).forEach((mapping) => {
+        mappingsWrapper.append(this.#buildExitMappingHandler(unit, mapping));
+      });
+
+      wrapper.append(mappingsWrapper);
+
+      const addButton = document.createElement("button");
+      addButton.innerHTML = "new mapping";
+      addButton.addEventListener("click", this.#addUnitExitMapping.bind(this));
+      wrapper.append(addButton);
+
+      return wrapper;
+    }
+
+    #buildExitMappingHandler(unit, mapping) {
+      const mappingWrapper = document.createElement("div");
+      mappingWrapper.classList.add("exit-mapping");
+      const use = document.createElement("input");
+      use.classList.add("use");
+      use.value = mapping.use;
+      const as = document.createElement("input");
+      as.classList.add("as");
+      as.value = mapping.as;
+
+      use.addEventListener("change", this.#unitExitMappingsChanged.bind(this));
+      as.addEventListener("change", this.#unitExitMappingsChanged.bind(this));
+
+      as.setAttribute("list", `${unit.oid}-target-inputs`);
+
+      const deleteButton = document.createElement("button");
+      deleteButton.addEventListener("click", this.#deleteExitMapping.bind(this));
+
+      mappingWrapper.append(use, as, deleteButton);
+      return mappingWrapper;
+    }
+
+    #deleteExitMapping(ev) {
+      let mappingWrapper = ev.target;
+      while (!mappingWrapper.classList.contains("exit-mapping")) {
+        mappingWrapper = mappingWrapper.parentElement;
+        if (mappingWrapper === null) { return null; }
+      }
+
+      mappingWrapper.remove();
     }
 
     #buildInputConfigHandler(input, matrix) {
@@ -498,6 +569,7 @@ window.Caixanegra.Designer = {
         [
           {value: "carryover", display: "Carry-over"},
           {value: "user", display: "User"},
+          {value: "storage", display: "Global storage"},
         ].forEach((option) => {
           const optionElement = document.createElement("option");
           optionElement.innerHTML = option.display;
@@ -548,6 +620,39 @@ window.Caixanegra.Designer = {
       this.selectedUnit.mappings[input].value = ev.target.value;
     }
 
+    #addUnitExitMapping(ev) {
+      const unit = this.selectedUnit;
+      const mapping = { use: "", as: "" };
+      ev.target.parentElement.querySelector(".mappings").append(
+        this.#buildExitMappingHandler(unit, mapping)
+      );
+
+      this.#unitExitMappingsChanged();
+    }
+
+    #unitExitMappingsChanged() {
+      const unit = this.selectedUnit;
+      const exits = this.unitDetailPane.querySelectorAll(".unit-exit");
+      const exitMappings = {};
+
+      Array.from(exits).forEach((exit) => {
+        exitMappings[exit.dataset.exit] = 
+          Array.from(exit.querySelectorAll(".exit-mapping")).map((mapping) => {
+            const useValue = mapping.querySelector("input.use").value;
+            const asValue = mapping.querySelector("input.as").value;
+            return { use: useValue, as: asValue };
+          });        
+      });
+
+      for(let idx = 0; idx < unit.exits.length; idx++) {
+        const newMappings = exitMappings[unit.exits[idx].name];
+
+        if (newMappings) {
+          unit.exits[idx].mappings = newMappings;
+        }
+      }
+    }
+
     #unitInputTypeChanged(ev) {
       let valueWrapper = ev.target;
 
@@ -561,6 +666,7 @@ window.Caixanegra.Designer = {
 
       switch (ev.target.value) {
         case "carryover":
+        case "storage":
           valueWrapper.classList.add("-disabled");
           break;
         case "user":

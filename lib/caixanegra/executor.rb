@@ -82,46 +82,5 @@ module Caixanegra
       end
     end
 
-    def flow
-      @flow ||= {
-        entrypoint: "id1",
-        units: [
-          {
-            oid: "id1",
-            unit: "start",
-            type: "starter",
-            position: { x: 0, y: 0 },
-            exits: [
-              { name: "exit", target: "id2", mappings: [{ use: "subject", as: "subject" }] }
-            ]
-          },
-          {
-            oid: "id2",
-            unit: "regexp_match",
-            type: "passthrough",
-            position: { x: 50, y: 50 },
-            mappings: {
-              subject: { type: "carryover", value: "subject" },
-              regexp: { type: "user", value: "INVESTORID#PED-INVEST\\w{2,}-I-I-(?<account>\\d{4,})" }
-            },
-            exits: [
-              {
-                name: "result",
-                target: "id3",
-                mappings: [
-                  { use: "result", as: "result" }
-                ]
-              }
-            ]
-          },
-          {
-            oid: "id3",
-            type: "terminator",
-            unit: "terminate",
-            position: { x: 0, y: 0 },
-          }
-        ]
-      }
-    end
   end
 end

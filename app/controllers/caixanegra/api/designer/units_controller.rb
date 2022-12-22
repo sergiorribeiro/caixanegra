@@ -24,7 +24,7 @@ module Caixanegra
                 type: v.type,
                 description: v.description,
                 class: k,
-                exits: v.exits&.map { |e| {name: e} },
+                exits: v.exits&.map { |e| { name: e } },
                 inputs: v.inputs
               }
             end
