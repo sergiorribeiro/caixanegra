@@ -17,6 +17,7 @@ gemspec
 group :development, :test do
   gem "awesome_print"
   gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
+  gem "pry"
   gem "pry-byebug"
   gem "pry-rails"
 end

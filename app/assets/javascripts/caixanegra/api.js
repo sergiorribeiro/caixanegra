@@ -46,4 +46,20 @@ window.Caixanegra.API = class {
       request.send(JSON.stringify(flow));
     });
   }
+
+  debugRun(id, unitScope, initialCarryOver) {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+
+      request.addEventListener("load", (event) => {
+        resolve(JSON.parse(event.target.response));
+      });
+      request.addEventListener("error", () => {
+        reject();
+      });
+
+      request.open("PATCH", `/caixanegra/api/designer/flows/${id}/debug_run${unitScope === "" ? "" : `?scope=${unitScope}`}`);
+      request.send(JSON.stringify(initialCarryOver));
+    });
+  }
 }

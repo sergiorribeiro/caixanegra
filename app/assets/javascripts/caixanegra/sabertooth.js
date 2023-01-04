@@ -97,6 +97,7 @@ window.Sabertooth = {
       this.oid = params.oid || Sabertooth.Utils.generateOId();
       this.position = params.position || new Sabertooth.Vector2(0, 0);
       this.size = params.size || new Sabertooth.Vector2(0, 0);
+      this.zIndex = params.zIndex;
     }
 
     getPosition(referential) {
@@ -126,8 +127,10 @@ window.Sabertooth = {
     worldCenter;
     #lastFrame;
     #mouse;
+    drawPasses;
 
     constructor(drawSurface) {
+      this.drawPasses = ["base"];
       this.#lastFrame = { moment: new Date(), lastSecond: new Date(), frameCount: 0, fps: 0 };
       this.#objects = new Array();
       this.#mouse = {};
@@ -160,6 +163,11 @@ window.Sabertooth = {
       });
     }
 
+    removeObject(oid) {
+      const killIndex = this.#objects.findIndex((object) => {return object.oid === oid});
+      this.#objects.splice(killIndex, 1);
+    }
+
     engineContext() {
       return {
         context2d: this.ctx,
@@ -188,9 +196,11 @@ window.Sabertooth = {
       this.ctx.fillStyle = "#333";
       this.ctx.fillRect(0, 0, eCtx.canvas.width, eCtx.canvas.height);
 
-      for (let oidx = 0; oidx < this.#objects.length; oidx++) {
-        this.#objects[oidx].draw(eCtx);
-      }
+      this.drawPasses.forEach((pass) => {
+        for (let oidx = 0; oidx < this.#objects.length; oidx++) {
+          this.#objects[oidx].draw(eCtx, pass);
+        }
+      });
     }
 
     #requestFrame() {
@@ -286,7 +296,7 @@ window.Sabertooth = {
         if (currentObject.getRectangle().intersectionPoint(new Sabertooth.Vector2(x, y))) {
           if (objectFound === null) {
             objectFound = currentObject;
-          } else if (objectFound.zIndex > currentObject.zIndex) {
+          } else if (objectFound.zIndex < currentObject.zIndex) {
             objectFound = currentObject;
           }
         }

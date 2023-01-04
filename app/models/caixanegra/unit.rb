@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Caixanegra
   class Unit
     attr_reader :oid, :storage
@@ -8,6 +10,11 @@ module Caixanegra
       @inputs = inputs
       @carry_over = carry_over
       @storage = storage
+      set_mapping_defaults
+    end
+
+    def current_carry_over
+      @carry_over.dup
     end
 
     def carry_over(value)
@@ -31,12 +38,13 @@ module Caixanegra
 
     def input(id)
       input_metadata = @mappings[id]
+      value_as_pointer = input_metadata[:value] || id
       input_value = case input_metadata&.[](:type)
-                    when "storage"
-                      @storage[*input_metadata[:value].split(".").map(&:to_sym)]
-                    when "carryover"
-                      @carry_over[*input_metadata[:value].split(".").map(&:to_sym)]
-                    when "user"
+                    when 'storage'
+                      @storage.dig(*value_as_pointer.to_s.split('.').map(&:to_sym))
+                    when 'carryover'
+                      @carry_over.dig(*value_as_pointer.to_s.split('.').map(&:to_sym))
+                    when 'user'
                       input_metadata[:value]
                     end
 
@@ -57,6 +65,21 @@ module Caixanegra
 
     def exits
       self.class.exits || []
+    end
+
+    def set
+      self.class.set || []
+    end
+
+    private
+
+    def set_mapping_defaults
+      (self.class.inputs || {}).each do |key, data|
+        next if @mappings.key? key
+
+        @mappings[key] = { type: 'carryover' }
+        @mappings[key][:value] = data[:default] if data[:default].present?
+      end
     end
 
     class << self

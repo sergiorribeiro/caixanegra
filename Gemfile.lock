@@ -162,6 +162,7 @@ DEPENDENCIES
   awesome_print
   byebug
   caixanegra!
+  pry
   pry-byebug
   pry-rails
   sqlite3

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Caixanegra
   self.mattr_accessor :units
   self.mattr_accessor :redis

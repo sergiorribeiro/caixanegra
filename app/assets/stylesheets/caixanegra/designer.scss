@@ -1,6 +1,41 @@
 $accent-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 $accent-color: rgb(105, 105, 105);
 $accent-highlight-color: lighten($accent-color, 20%);
+$accent-contrast-color: darken($accent-color, 20%);
+
+#execution {
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  top: 8px;
+  right: 8px;
+
+  div {
+    cursor: pointer;
+    transition: all 250ms ease-in-out;
+    height: 18px;
+    width: 18px;
+    margin-left: 8px;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    svg {
+      path, polygon {
+        fill: white;
+      }
+    }
+  }
+
+  #reset {
+    display: none;
+  }
+
+  #console {
+    display: none;
+  }
+}
 
 #addUnit {
   position: fixed;
@@ -129,6 +164,258 @@ $accent-highlight-color: lighten($accent-color, 20%);
   }
 }
 
+#executionConsole, #executionConfiguration {
+  position: fixed;
+  top: -120%;
+  right: 60px;
+  max-height: 50%;
+  background-color: $accent-color;
+  transition: all 250ms ease-in-out;
+  box-shadow: $accent-shadow;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  width: 350px;
+  padding: 4px;
+  overflow-y: auto;
+  z-index: 1000;
+
+  &.-open {
+    top: 0%;
+  }
+}
+
+#executionConfiguration {
+  width: auto;
+  max-width: 70%;
+
+  .section {
+    font-family: Verdana;
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    #clearCarryOverObject {
+      font-size: 0.5em;
+      color: $accent-contrast-color;
+      font-weight: normal;
+      margin-left: 15px;
+      cursor: pointer;
+    }
+  }
+
+  div[data-type] {
+    position: relative;
+  }
+
+  div[data-type='array'] {
+    background-color: lighten($accent-color, 5%);
+    padding: 4px;
+  }
+
+  div[data-type='object'] {
+    background-color: lighten($accent-color, 8%);
+    padding: 4px;
+
+    & > div > div.row {
+      display: flex;
+      flex-direction: row;
+    }
+  }
+
+  #carryOverObject {
+    padding: 5px;
+    font-family: monospace;
+
+    button {
+      font-size: 0.8em;
+      font-family: monospace;
+      background-color: $accent-highlight-color;
+      border: 1px solid $accent-color;
+      color: black;
+      padding: 3px 6px;
+      cursor: pointer;
+      transition: all 250ms ease-in-out;
+      height: 100%;
+
+      &:hover {
+        background-color: $accent-contrast-color;
+        color: $accent-highlight-color;
+      }
+    }
+
+    input {
+      font-size: 0.8em;
+      width: 100%;
+      box-sizing: border-box;
+      background-color: $accent-highlight-color;
+      padding: 6px 4px;
+      border: none;
+      outline: none;
+      font-family: monospace;
+    }
+
+    .-inline, .-indent {
+      display: flex
+    }
+
+    .-inline {
+      flex-direction: row;
+
+      & > .key-side {
+        margin-right: 5px;
+      }
+    }
+
+    .-indent {
+      flex-direction: column;
+
+      & > div[data-type] {
+        margin-left: 10px;
+      }
+
+      & > .key-side {
+        margin-right: 0;
+      }
+    }
+
+    [data-type='array'] > div > div > div[data-type] {
+      margin-left: 0 !important;
+    }
+
+    .row {
+      margin: 5px 0;
+    }
+  }
+}
+
+#executionConsole {
+  background-color: rgb(10, 10, 10);
+
+  .console-entry {
+    display: flex;
+    flex-direction: row;
+    font-family: monospace;
+    font-size: 0.7em;
+    color: rgb(245, 245, 245);
+
+    .timestamp {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .message {
+      margin-left: 8px;
+    }
+  }
+}
+
+#unitDebugHits {
+  position: fixed;
+  top: 6%;
+  right: -100%;
+  width: 300px;
+  max-height: 89%;
+  background-color: $accent-color;
+  transition: all 250ms 0ms ease-in-out;
+  overflow-y: auto;
+  box-shadow: $accent-shadow;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  display: flex;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+  &.-open {
+    right: 350px;
+    transition: all 250ms 150ms ease-in-out;
+  }
+
+  .content {
+    padding: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+
+    .name {
+      font-size: 1em;
+      font-weight: bold;
+      width: 100%;
+    }
+  }
+
+  .step-hit {
+    margin: 8px 0 8px 0;
+    background-color: rgba(255,255,255,0.1);
+    padding: 6px;
+    transition: all 250ms ease-in-out;
+
+    &:hover {
+      background-color: white;
+    }
+
+    .hit-header {
+      font-size: 0.9em;
+      font-weight: bold;
+      margin-bottom: 5px;
+      position: relative;
+      padding-left: 16px;
+    }
+
+    &.-ok .hit-header::before,
+    &.-nok .hit-header::before {
+      content: "";
+      display: block;
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      top: 50%;
+      transform: translate(-16px, -50%);
+      border: solid 1px $accent-highlight-color;
+      border-radius: 50%;
+    }
+
+    &.-ok .hit-header::before {
+      background-color: green;
+    }
+
+    &.-nok .hit-header::before {
+      background-color: red;
+    }
+
+    .hit-fold {
+      .header {
+        cursor: pointer;
+        font-size: 0.8em;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+  
+      .content {
+        font-size: 0.7em;
+        display: none;
+        font-family: monospace;
+        padding: 5px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow-y: hidden;
+        margin-bottom: 5px;
+        overflow-wrap: anywhere;
+
+        .carry-over {
+          overflow: auto;
+        }
+        
+        &.-open {
+          display: block;
+        }
+      }
+    }
+  }
+}
+
 #unitDetail {
   position: fixed;
   top: 5%;
@@ -144,8 +431,66 @@ $accent-highlight-color: lighten($accent-color, 20%);
   display: flex;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 
+  #dynamicContent {
+    .field {
+      padding: 6px;
+      transition: all 250ms ease-in-out;
+      background-color: rgba(255,255,255,0.1);
+
+      &:hover {
+        background-color: white;
+      }
+    }
+  }
+
   .field {
     width: 100%;
+    margin-bottom: 5px;
+    box-sizing: border-box;
+
+    select {
+      box-sizing: border-box;
+      background-color: $accent-highlight-color;
+      padding: 6px 4px;
+      border: none;
+      outline: none;
+    }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      & > div {
+        font-size: 0.8em;
+        font-weight: bold;
+      }
+
+      .type {
+        font-size: 0.7em;
+        color: $accent-highlight-color;
+      }
+
+      .name .internal {
+        color: $accent-contrast-color;
+        font-size: 0.6em;
+      }
+
+      select {
+        width: auto !important;
+      }
+    }
+
+    .field-description {
+      font-size: 0.7em;
+      color: $accent-contrast-color;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
+    select {
+      width: 100%;
+    }
 
     input {
       width: 100%;
@@ -154,6 +499,97 @@ $accent-highlight-color: lighten($accent-color, 20%);
       padding: 6px 4px;
       border: none;
       outline: none;
+
+      &.-monospace {
+        font-family: monospace;
+      }
+    }
+  }
+
+  .unit-exit {
+    padding: 6px;
+    transition: all 250ms ease-in-out;
+    text-align: center;
+
+    background-color: rgba(255,255,255,0.1);
+
+    &:hover {
+      background-color: white;
+    }
+
+    .field-name {
+      font-size: 0.8em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    button {
+      background-color: $accent-highlight-color;
+      border: 1px solid $accent-color;
+      color: black;
+      padding: 3px 6px;
+      cursor: pointer;
+      transition: all 250ms ease-in-out;
+      margin-top: 4px;
+
+      &:hover {
+        background-color: $accent-contrast-color;
+        color: $accent-highlight-color;
+      }
+    }
+
+    .exit-mapping {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+
+      .mapping-values {
+        width: 100%;
+        margin-right: 5px;
+      }
+
+      .label-pair {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        margin-bottom: 3px;
+
+        &:last-child {
+          margin-bottom: unset;
+        }
+
+        .label {
+          font-size: 0.75em;
+          width: 35px;
+        }
+
+        input {
+          width: 100%;
+          box-sizing: border-box;
+          background-color: $accent-highlight-color;
+          padding: 6px 4px;
+          border: none;
+          outline: none;
+          font-family: monospace;
+        }
+      }
+
+      button {
+        margin-top: unset;
+      }
+    }
+  }
+
+  .unit-input {
+    .unit-input-value {
+      &.-disabled {
+        display: none;
+
+        input, select {
+          pointer-events: none;
+        }
+      }
     }
   }
 
@@ -176,6 +612,85 @@ $accent-highlight-color: lighten($accent-color, 20%);
         font-size: 0.8em;
         margin-top: 5px;
         margin-bottom: 5px;
+      }
+    }
+
+    #unitDetailClass {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+
+      .name {
+        font-size: 1em;
+        font-weight: bold;
+        width: 100%;
+      }
+
+      .delete {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        min-width: 80px;
+        font-size: 0.5em;
+        user-select: none;
+
+        #toggler {
+          position: absolute;
+          opacity: 1;
+          pointer-events: all;
+          cursor: pointer;
+          transition: opacity 250ms ease-in-out;
+          width: 12px;
+          height: 12px;
+
+          path {
+            fill: $accent-contrast-color;
+          }
+        }
+
+        .confirm-buttons {
+          display: flex;
+          flex-direction: row;
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+          cursor: pointer;
+          transition: opacity 250ms ease-in-out;
+
+          & > div {
+            margin-left: 3px;
+          }
+
+          #confirmDelete, #cancelDelete {
+            width: 12px;
+            height: 12px;
+          }
+
+          #confirmDelete {
+            path {
+              fill: rgb(0,50,0);
+            }
+          }
+          
+          #cancelDelete {
+            path {
+              fill: rgb(50,0,0);
+            }
+          }
+        }
+
+        &.-confirming {
+          #toggler {
+            opacity: 0;
+            pointer-events: none;
+          }
+
+          .confirm-buttons {
+            opacity: 1;
+            pointer-events: all;
+          }
+        }
       }
     }
 
@@ -261,14 +776,13 @@ $accent-highlight-color: lighten($accent-color, 20%);
     margin-right: 10px;
 
     &.icon-working {
-      border-radius: 50%;
-      background-color: white;
-      animation: pulse;
-      animation-timing-function: ease-in-out;
-      animation-duration: 400ms;
+      width: 32px;
+      height: 32px;
+      animation: infi_rotate;
+      animation-timing-function: linear;
+      animation-duration: 2s;
       animation-iteration-count: infinite;
       animation-fill-mode: forwards;
-      animation-direction: alternate;
     }
 
     svg {
@@ -279,7 +793,7 @@ $accent-highlight-color: lighten($accent-color, 20%);
 
 }
 
-@keyframes pulse {
-  from { transform: scale(1); }
-  to { transform: scale(0.7); }
+@keyframes infi_rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(359deg); }
 }

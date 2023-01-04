@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Caixanegra
   module API
     module Designer
       class FlowsController < ::Caixanegra::APIController
-        before_action :set_flow, only: %i[show]
+        before_action :set_flow, only: %i[show debug_run]
 
         def show
           render json: @flow
@@ -14,7 +16,24 @@ module Caixanegra
           head :ok
         end
 
+        def debug_run
+          execution = Caixanegra::Executor.new(
+            initial_carryover: initial_carryover,
+            flow_definition: @flow,
+            unit_scope: params[:unit_scope],
+            debug_mode: true
+          ).run
+
+          render json: { result: execution[:result], debug: execution[:debug] }
+        end
+
         private
+
+        def initial_carryover
+          JSON.parse(request.body.read)
+        rescue StandardError
+          {}
+        end
 
         def set_flow
           @flow = Caixanegra::Manager.get(params[:id])

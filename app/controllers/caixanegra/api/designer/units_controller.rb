@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Caixanegra
   module API
     module Designer
@@ -19,7 +21,7 @@ module Caixanegra
             all_units = base_units.merge(scope_units || {})
 
             all_units.map do |k, v|
-              {
+              base = {
                 title: v.name,
                 type: v.type,
                 description: v.description,
@@ -27,6 +29,10 @@ module Caixanegra
                 exits: v.exits&.map { |e| { name: e } },
                 inputs: v.inputs
               }
+
+              base[:set] = v.set if base[:set]
+
+              base
             end
           end
         end

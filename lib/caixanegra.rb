@@ -1,3 +1,4 @@
+require "caixanegra/exceptions"
 require "caixanegra/engine"
 require "caixanegra/version"
 require "caixanegra/executor"
