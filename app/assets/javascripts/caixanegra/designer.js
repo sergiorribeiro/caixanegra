@@ -154,13 +154,14 @@ window.Caixanegra.Designer = {
             ctx.stroke();
           }
 
-          ctx.strokeStyle = "#FFF";
-          ctx.lineWidth = 2;
-
           this.#drawValues.exits.forEach((exit) => {
-            if (this.debugHits.some(hit => hit?.out?.target_unit === exit.reference.target.oid)) {
+            const hitsForExit = this.debugHits.filter(hit => hit?.out?.result?.exit_through === exit.reference.name);
+            if (hitsForExit.length > 0) {
               ctx.strokeStyle = "#0F0";
               ctx.lineWidth = 3;
+            } else {
+              ctx.strokeStyle = "#FFF";
+              ctx.lineWidth = 2;
             }
             ctx.beginPath();
             ctx.moveTo(this.#drawValues.position.x + this.size.x, exit.markerY);
@@ -186,6 +187,20 @@ window.Caixanegra.Designer = {
           ctx.roundRect(this.#drawValues.position.x, this.#drawValues.position.y, this.size.x, this.size.y, 5);
           ctx.strokeStyle = "#FFF";
           ctx.stroke();
+
+          let gco = ctx.globalCompositeOperation;
+          ctx.globalCompositeOperation = "difference";
+          ctx.textBaseline = "bottom";
+          ctx.textAlign = "left";
+          ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+          ctx.font = "15px Helvetica";
+          ctx.fillText(
+            this.oid,
+            this.#drawValues.position.x,
+            this.#drawValues.position.y - ((this.debugHits.length > 0) ? 15 : 5),
+            this.UNIT_WIDTH
+          );
+          ctx.globalCompositeOperation = gco;
 
           ctx.textBaseline = "top";
           ctx.textAlign = "center";
@@ -810,7 +825,7 @@ window.Caixanegra.Designer = {
           const carryOver = document.createElement("div");
           carryOver.classList.add("carry-over");
           carryOver.innerHTML = JSON.stringify(
-            (flow === "in" ? data.carry_over : data.result) || {},
+            (flow === "in" ? {carryover: data.carry_over || {}, storage: data.storage || {}} : data.result) || {},
             null, 4
           );
 
@@ -868,7 +883,7 @@ window.Caixanegra.Designer = {
 
     #fillDetailPane(object) {
       this.selectedUnit = object;
-      const matrix = this.#catalog.find((unit) => unit.type === object.type);
+      const matrix = this.#catalog.find((unit) => unit.class === object.class);
       const pane = this.unitDetailPane;
       const debugPane = this.unitDebugHitsPane;
       const dynamicContent = pane.querySelector("#dynamicContent");
@@ -1050,6 +1065,7 @@ window.Caixanegra.Designer = {
         let valueInput = null;
         switch (matrix.type) {
           case "string":
+          case "number":
           case "regex":
             {
               valueInput = document.createElement("input");
@@ -1212,10 +1228,12 @@ window.Caixanegra.Designer = {
         return "#65CCA9";
       case "terminator":
         return "#E44";
-      case "passthrough":
+      case "blackbox":
         return "#EEE";
+      case "passthrough":
+        return "#c4c66a";
       case "feeder":
-        return "#44E";
+        return "#5a92d8";
       default:
         return "#FFF";
     }

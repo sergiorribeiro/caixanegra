@@ -2,19 +2,23 @@
 
 module Caixanegra
   class Unit
-    attr_reader :oid, :storage
+    attr_reader :oid
 
     def initialize(oid, inputs = {}, mappings = {}, carry_over = {}, storage = {})
       @oid = oid
       @mappings = mappings
       @inputs = inputs
-      @carry_over = carry_over
-      @storage = storage
+      @carry_over = carry_over.with_indifferent_access
+      @storage = storage.with_indifferent_access
       set_mapping_defaults
     end
 
     def current_carry_over
       @carry_over.dup
+    end
+
+    def current_storage
+      @storage.dup
     end
 
     def carry_over(value)
@@ -38,16 +42,28 @@ module Caixanegra
 
     def input(id)
       input_metadata = @mappings[id]
-      value_as_pointer = input_metadata[:value] || id
       input_value = case input_metadata&.[](:type)
                     when 'storage'
-                      @storage.dig(*value_as_pointer.to_s.split('.').map(&:to_sym))
+                      @storage[id]
                     when 'carryover'
-                      @carry_over.dig(*value_as_pointer.to_s.split('.').map(&:to_sym))
+                      @carry_over[id]
                     when 'user'
                       input_metadata[:value]
                     end
 
+      if input_value.present?
+        result = input_value.dup
+        input_value.scan(Regexp.new(/%(.*?)%/)) do |match|
+          match = match[0]
+          result.gsub!("%#{match}%", @carry_over[match] || '')
+        end
+        input_value.scan(Regexp.new(/@(.*?)@/)) do |match|
+          match = match[0]
+          result.gsub!("@#{match}@", @storage[match] || '')
+        end
+
+        input_value = result
+      end
       input_value.presence || @inputs[id][:default]
     end
 
@@ -83,7 +99,7 @@ module Caixanegra
     end
 
     class << self
-      attr_reader :name, :description, :inputs, :exits, :type
+      attr_reader :name, :description, :inputs, :exits, :assignments, :type
 
       @type = :passthrough
 
@@ -105,6 +121,10 @@ module Caixanegra
 
       def configure_inputs(inputs)
         @inputs = inputs
+      end
+
+      def configure_assignments(assignments)
+        @assignments = assignments
       end
     end
   end

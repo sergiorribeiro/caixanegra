@@ -123,7 +123,7 @@ window.Sabertooth = {
     #objects;
     ctx;
     running;
-    debugging = true;
+    debugging = false;
     worldCenter;
     #lastFrame;
     #mouse;
