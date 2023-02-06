@@ -824,10 +824,15 @@ window.Caixanegra.Designer = {
         case "out":
           const carryOver = document.createElement("div");
           carryOver.classList.add("carry-over");
-          carryOver.innerHTML = JSON.stringify(
+          let jsonString = JSON.stringify(
             (flow === "in" ? {carryover: data.carry_over || {}, storage: data.storage || {}} : data.result) || {},
-            null, 4
+            null, "\t"
           );
+
+          jsonString = jsonString.replace(/\t/g, "<span class='json-indent'></span>");
+          jsonString = jsonString.replace(/\n/g, "<br />");
+
+          carryOver.innerHTML = jsonString;
 
           content.append(carryOver);
           break;
@@ -916,6 +921,16 @@ window.Caixanegra.Designer = {
         })
       }
 
+      const unitAssignmentsDatalist = document.createElement("datalist");
+      unitAssignmentsDatalist.id = `${object.oid}-assignments`;
+
+      (matrix.assignments || []).forEach((assignment) => {
+        const option = document.createElement("option");
+        option.setAttribute("value", assignment);
+        unitAssignmentsDatalist.append(option);
+      });
+      dynamicContent.appendChild(unitAssignmentsDatalist);
+
       if ((matrix?.exits || []).length > 0) {
         const exitsHeader = document.createElement("div");
         exitsHeader.classList.add("unit-detail-headers");
@@ -941,21 +956,26 @@ window.Caixanegra.Designer = {
       const mappingsWrapper = document.createElement("div");
       mappingsWrapper.classList.add("mappings");
 
-      const datalist = document.createElement("datalist");
-      datalist.id = `${unit.oid}-${exit.name}-target-inputs`;
-      
-      const target = this.#catalog.find((cUnit) => cUnit.type === exit?.target?.type);
+      const targetUnitInputDatalist = document.createElement("datalist");
+      targetUnitInputDatalist.id = `${unit.oid}-${exit.name}-target-inputs`;
+
+      const target = this.#catalog.find((cUnit) => cUnit.class === exit?.target?.class);
       if (target) {
         Object.keys(target.inputs || []).forEach((input) => {
           const option = document.createElement("option");
           option.setAttribute("value", input);
-          datalist.append(option);
+          targetUnitInputDatalist.append(option);
         });
       }
-      dynamicContent.append(datalist);
+
+      dynamicContent.append(targetUnitInputDatalist);
+      let datalists = {
+        unitAssignments: `${unit.oid}-assignments`,
+        targetUnitInputs: targetUnitInputDatalist.id,
+      };
 
       (exit.mappings || []).forEach((mapping) => {
-        mappingsWrapper.append(this.#buildExitMappingHandler(datalist.id, mapping));
+        mappingsWrapper.append(this.#buildExitMappingHandler(datalists, mapping));
       });
 
       wrapper.append(mappingsWrapper);
@@ -963,13 +983,14 @@ window.Caixanegra.Designer = {
       const addButton = document.createElement("button");
       addButton.type = "button";
       addButton.innerHTML = "new mapping";
+      addButton.dataset.exitName = exit.name;
       addButton.addEventListener("click", this.#addUnitExitMapping.bind(this));
       wrapper.append(addButton);
 
       return wrapper;
     }
 
-    #buildExitMappingHandler(datalistId, mapping) {
+    #buildExitMappingHandler(datalists, mapping) {
       const mappingWrapper = document.createElement("div");
       const valueWrapper = document.createElement("div");
       valueWrapper.classList.add("mapping-values");
@@ -997,7 +1018,8 @@ window.Caixanegra.Designer = {
       use.addEventListener("change", this.#unitExitMappingsChanged.bind(this));
       as.addEventListener("change", this.#unitExitMappingsChanged.bind(this));
 
-      as.setAttribute("list", datalistId);
+      use.setAttribute("list", datalists["unitAssignments"]);
+      as.setAttribute("list", datalists["targetUnitInputs"]);
 
       const deleteButton = document.createElement("button");
       deleteButton.type = "button";
@@ -1017,6 +1039,8 @@ window.Caixanegra.Designer = {
       }
 
       mappingWrapper.remove();
+
+      this.#unitExitMappingsChanged();
     }
 
     #buildInputConfigHandler(input, matrix) {
@@ -1138,8 +1162,15 @@ window.Caixanegra.Designer = {
     #addUnitExitMapping(ev) {
       const unit = this.selectedUnit;
       const mapping = { use: "", as: "" };
+      const exitName = ev.target.dataset.exitName;
+
+      let datalists = {
+        targetUnitInputs: `${unit.oid}-${exitName}-target-inputs`,
+        unitAssignments: `${unit.oid}-assignments`
+      };
+
       ev.target.parentElement.querySelector(".mappings").append(
-        this.#buildExitMappingHandler(unit, mapping)
+        this.#buildExitMappingHandler(datalists, mapping)
       );
 
       this.#unitExitMappingsChanged();

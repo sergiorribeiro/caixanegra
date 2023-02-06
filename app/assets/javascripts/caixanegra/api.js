@@ -1,4 +1,8 @@
 window.Caixanegra.API = class {
+  mountedPath() {
+    return document.querySelector("consts mounted_path").getAttribute("value");
+  }
+
   units(unitScope) {
     return new Promise((resolve, reject) => {
       const request = new XMLHttpRequest();
@@ -10,7 +14,7 @@ window.Caixanegra.API = class {
         reject();
       });
 
-      request.open("GET", `/caixanegra/api/designer/units${unitScope === "" ? "" : `?scope=${unitScope}`}`);
+      request.open("GET", `${this.mountedPath()}/api/designer/units${unitScope === "" ? "" : `?scope=${unitScope}`}`);
       request.send();
     });
   }
@@ -26,7 +30,7 @@ window.Caixanegra.API = class {
         reject();
       });
 
-      request.open("GET", `/caixanegra/api/designer/flows/${id}`);
+      request.open("GET", `${this.mountedPath()}/api/designer/flows/${id}`);
       request.send();
     });
   }
@@ -42,7 +46,7 @@ window.Caixanegra.API = class {
         reject();
       });
 
-      request.open("PATCH", `/caixanegra/api/designer/flows/${id}`);
+      request.open("PATCH", `${this.mountedPath()}/api/designer/flows/${id}`);
       request.send(JSON.stringify(flow));
     });
   }
@@ -58,7 +62,7 @@ window.Caixanegra.API = class {
         reject();
       });
 
-      request.open("PATCH", `/caixanegra/api/designer/flows/${id}/debug_run${unitScope === "" ? "" : `?scope=${unitScope}`}`);
+      request.open("PATCH", `${this.mountedPath()}/api/designer/flows/${id}/debug_run${unitScope === "" ? "" : `?scope=${unitScope}`}`);
       request.send(JSON.stringify(initialCarryOver));
     });
   }

@@ -27,7 +27,8 @@ module Caixanegra
                 description: v.description,
                 class: k,
                 exits: v.exits&.map { |e| { name: e } },
-                inputs: v.inputs
+                inputs: v.inputs,
+                assignments: v.assignments
               }
 
               base[:set] = v.set if base[:set]

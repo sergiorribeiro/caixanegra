@@ -339,6 +339,11 @@ $accent-contrast-color: darken($accent-color, 20%);
     box-sizing: border-box;
     overflow-y: auto;
 
+    .json-indent {
+      display: inline-block;
+      width: 5px;
+    }
+
     .name {
       font-size: 1em;
       font-weight: bold;
