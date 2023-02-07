@@ -1236,8 +1236,13 @@ window.Caixanegra.Designer = {
           [1, 2].includes(context.mouse.move.button) &&
           context.mouse.down && 
           context.mouse.down.cursorAt === null) {
-        this.gre.worldCenter.x = (context.mouse.move.x - context.mouse.down.x) + context.mouse.down.referential.x;
-        this.gre.worldCenter.y = (context.mouse.move.y - context.mouse.down.y) + context.mouse.down.referential.y;
+        const offset = {
+          x: context.mouse.move.internal_x - context.mouse.down.internal_x,
+          y: context.mouse.move.internal_y - context.mouse.down.internal_y
+        }
+
+        this.gre.worldCenter.x = context.mouse.down.referential.x + offset.x;
+        this.gre.worldCenter.y = context.mouse.down.referential.y + offset.y;
         
         for (let oidx = 0; oidx < context.objects.length; oidx++) {
           context.objects[oidx].initialize(this.gre.engineContext());

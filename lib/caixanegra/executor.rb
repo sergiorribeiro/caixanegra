@@ -32,8 +32,10 @@ module Caixanegra
       format_result(flow_through)
     rescue Caixanegra::UnitScopedException => e
       log_step_exception(e)
+      log_console_entry("Unit error: #{e.message}")
       format_result(e.message)
     rescue => e
+      log_console_entry("Error: #{e.message}")
       format_result(e.message)
     end
 
@@ -101,6 +103,7 @@ module Caixanegra
       while @step_unit.exits.size.nonzero?
         feeder_steps = process_feeders
         result = begin
+          log_console_entry("Flowing #{@step_unit.oid}")
           result = @step_unit.flow
           @storage.merge! @step_unit.current_storage
           result
@@ -115,6 +118,8 @@ module Caixanegra
         @step_unit = next_unit
         log_new_step
       end
+
+      log_console_entry("Reached terminator #{@step_unit.oid}")
 
       @step_unit.flow[:carry_over]
     end

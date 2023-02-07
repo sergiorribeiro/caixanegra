@@ -246,7 +246,9 @@ window.Sabertooth = {
         button: evt.which,
         x: evt.x * Sabertooth.UPSCALE_FACTOR - this.worldCenter.x,
         y: evt.y * Sabertooth.UPSCALE_FACTOR - this.worldCenter.y,
-        referential: this.worldCenter,
+        internal_x: evt.x * Sabertooth.UPSCALE_FACTOR,
+        internal_y: evt.y * Sabertooth.UPSCALE_FACTOR,
+        referential: new Sabertooth.Vector2(this.worldCenter.x, this.worldCenter.y),
         cursorAt: null
       }
 
