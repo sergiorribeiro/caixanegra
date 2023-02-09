@@ -53,11 +53,11 @@ module Caixanegra
 
       if input_value.present?
         result = input_value.dup
-        input_value.scan(Regexp.new(/%(.*?)%/)) do |match|
+        input_value.to_s.scan(Regexp.new(/%(.*?)%/)) do |match|
           match = match[0]
           result.gsub!("%#{match}%", @carry_over[match] || '')
         end
-        input_value.scan(Regexp.new(/@(.*?)@/)) do |match|
+        input_value.to_s.scan(Regexp.new(/@(.*?)@/)) do |match|
           match = match[0]
           result.gsub!("@#{match}@", @storage[match] || '')
         end
