@@ -1268,6 +1268,8 @@ window.Caixanegra.Designer = {
         return "#EEE";
       case "passthrough":
         return "#c4c66a";
+      case "fork":
+        return "#ffcc5c"
       case "feeder":
         return "#5a92d8";
       default:
