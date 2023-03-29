@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors     = ['sergiorribeiro']
   spec.email       = ['sergio.r.ribeiro@live.com']
   spec.homepage    = 'https://github.com/sergiorribeiro/caixanegra/wiki'
-  spec.summary     = 'Unopinionated flow oriented blackbox designer and executor'
-  spec.description = 'An unopinionated flow oriented blackbox designer and executor to interface your service classes'
+  spec.summary     = 'Unopinionated flow oriented blackbox designer, executor and debugger'
+  spec.description = 'An unopinionated, flow oriented blackbox designer and executor to interface your service classes'
   spec.license     = 'MIT'
   spec.files = Dir[
     '{app,config,db,lib}/**/*',
