@@ -27,7 +27,7 @@ module Caixanegra
     end
 
     def run_and_report_result
-      log_console_entry "Started"
+      log_console_entry 'Started'
       set_start_unit
       format_result(flow_through)
     rescue Caixanegra::UnitScopedException => e

@@ -4,7 +4,7 @@ module Caixanegra
   class Manager
     class << self
       def handler(flow_definition = {})
-        uid = SecureRandom.uuid.gsub("-", "")
+        uid = SecureRandom.uuid.gsub('-', '')
 
         Caixanegra.redis.multi do |pipeline|
           pipeline.hset(:caixanegra, uid, JSON.dump(flow_definition))

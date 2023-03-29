@@ -1,8 +1,9 @@
-require "caixanegra/exceptions"
-require "caixanegra/engine"
-require "caixanegra/version"
-require "caixanegra/executor"
-require "caixanegra/manager"
+# frozen_string_literal: true
 
-module Caixanegra  
-end
+require 'caixanegra/exceptions'
+require 'caixanegra/engine'
+require 'caixanegra/version'
+require 'caixanegra/executor'
+require 'caixanegra/manager'
+
+module Caixanegra ; end

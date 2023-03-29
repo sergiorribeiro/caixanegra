@@ -6,13 +6,13 @@ module Caixanegra
   self.units = []
 
   def self.setup(&block)
-     yield self
+    yield self
   end
 
   class Engine < ::Rails::Engine
     isolate_namespace Caixanegra
 
-    initializer "caixanegra.assets.precompile" do |app|
+    initializer 'caixanegra.assets.precompile' do |app|
       app.config.assets.precompile += %w[
         caixanegra/api.js
         caixanegra/caixanegra.js
