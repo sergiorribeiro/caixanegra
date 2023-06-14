@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module Caixanegra
-  module API
+  module Api
     module Designer
-      class UnitsController < ::Caixanegra::APIController
+      class UnitsController < ::Caixanegra::ApiController
         def index
           render json: units
         end

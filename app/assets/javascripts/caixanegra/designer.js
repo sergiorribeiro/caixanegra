@@ -166,9 +166,9 @@ window.Caixanegra.Designer = {
             ctx.beginPath();
             ctx.moveTo(this.#drawValues.position.x + this.size.x, exit.markerY);
             ctx.lineTo(this.#drawValues.position.x + this.size.x + 25, exit.markerY);
-            
+
             if (this.connectingExit === exit && context.mouse.move) {
-              ctx.lineTo(context.mouse.move.x, context.mouse.move.y);
+              ctx.lineTo(context.mouse.move.x + context.referential.x, context.mouse.move.y + context.referential.y);
             } else if (exit.reference.target) {
               const targetCenter = exit.reference.target.getCenter(context.referential);
               ctx.lineTo(targetCenter.x, targetCenter.y);
@@ -382,10 +382,10 @@ window.Caixanegra.Designer = {
     }
 
     deleteUnit() {
-      this.removeUnit(this.selectedUnit.oid);
-      this.toggleDeleteConfirmation();
       this.unitDetailPane.classList.remove("-open");
       this.unitDebugHitsPane.classList.remove("-open");
+      this.removeUnit(this.selectedUnit.oid);
+      this.toggleDeleteConfirmation();
     }
 
     flushToConsole(entries) {

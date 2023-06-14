@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
 module Caixanegra
-  class APIController < ActionController::API
+  class ApiController < ActionController::API
   end
 end
