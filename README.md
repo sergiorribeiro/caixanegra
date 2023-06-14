@@ -51,7 +51,7 @@ uid = Caixanegra::Manager.handler(my_flow || {})
 You can then safely navigate to the designer.
 
 ```ruby
-link_to "Some flow", "/caixanegra/design/#{@uid}?unit_scope=optional_scope", target: :blank
+link_to "Some flow", "/caixanegra/design/#{@uid}?unit_scope=optional_scope,another_optional_scope", target: :_blank
 ```
 
 Saved changes will update the flow definition on Redis, and you must then persist them. You can get the flow definition for any specified **caixanegra** handled UID:
