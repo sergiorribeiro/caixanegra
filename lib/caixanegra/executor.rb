@@ -5,7 +5,6 @@ module Caixanegra
     def initialize(params)
       @initial_carryover = params[:initial_carryover] || {}
       @flow = (params[:flow_definition] || {}).deep_symbolize_keys
-      @unit_scope = params[:unit_scope]
       @debug_mode = params[:debug_mode] == true
       @execution = { history: [], steps: [] }
       @storage = {}
@@ -190,12 +189,7 @@ module Caixanegra
     end
 
     def scoped_units
-      @scoped_units ||= begin
-        base_units = Caixanegra.units.reject { |_, v| v.is_a? Hash }
-        scope_units = Caixanegra.units[@unit_scope] if @unit_scope.present?
-
-        base_units.merge(scope_units || {})
-      end
+      @scoped_units ||= UnitHelper.all_units
     end
   end
 end

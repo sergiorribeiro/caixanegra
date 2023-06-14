@@ -20,7 +20,6 @@ module Caixanegra
           execution = Caixanegra::Executor.new(
             initial_carryover: initial_carryover,
             flow_definition: @flow,
-            unit_scope: params[:unit_scope],
             debug_mode: true
           ).run
 
