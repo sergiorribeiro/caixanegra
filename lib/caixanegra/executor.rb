@@ -112,6 +112,8 @@ module Caixanegra
           raise exception
         end
         next_unit = next_unit(result)
+        raise(ContinuityException.new, "Unable to choose a valid exit") if next_unit.nil?
+
         log_step_result(result, next_unit)
         @execution[:steps] += feeder_steps
         @step_unit = next_unit
@@ -142,6 +144,8 @@ module Caixanegra
     end
 
     def next_unit(result)
+      return nil if result.nil?
+
       exit_name = result[:exit_through]
       metadata = unit_metadata(@step_unit.oid)
       log_console_entry "Next unit found through '#{exit_name}': '#{@step_unit.oid}'"
@@ -186,6 +190,9 @@ module Caixanegra
       unit_class = scoped_units[unit_data[:class].to_sym]
       inputs = unit_class.inputs
       unit_class.new(unit_data[:oid], inputs, mappings, carry_over, @storage)
+    rescue
+      log_console_entry "Unable to load unit instance of type '#{unit_data[:class]}'"
+      nil
     end
 
     def scoped_units

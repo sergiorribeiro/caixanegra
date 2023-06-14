@@ -36,6 +36,12 @@ module Caixanegra
       }
     end
 
+    def exit_and_return
+      {
+        carry_over: @carry_over
+      }
+    end
+
     def flow
       exit_through exits.first
     end
@@ -64,7 +70,10 @@ module Caixanegra
 
         input_value = result
       end
+
       input_value.presence || @inputs[id][:default]
+    rescue StandardError
+      raise(UnitIOException.new, "Unable to fetch input '#{id}'")
     end
 
     def name
