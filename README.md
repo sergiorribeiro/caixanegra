@@ -63,7 +63,7 @@ persist_flow(updated_flow) # your own persistence or transport solution. It's a 
 
 **NOTE:** There's currently no managed way to set callbacks on save actions from the designer. Working on it
 
-Please, refer to [the wiki](https://github.com/sergiorribeiro/caixanegra/wiki) to get to know more about [creating your units](https://github.com/sergiorribeiro/caixanegra/wiki/Creating-units).
+Please, refer to [the wiki](https://github.com/sergiorribeiro/caixanegra/wiki) to get to know more about [units](https://github.com/sergiorribeiro/caixanegra/wiki/Anatomy-of-a-unit).
 
 # License
 **caixanegra** is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
