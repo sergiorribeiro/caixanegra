@@ -2,30 +2,26 @@ module Caixanegra
   class UnitHelper
     class << self
       def scoped_units(scope)
-        all_units = {}
-        all_units = all_units.merge(Caixanegra.units.reject { |_, v| v.is_a? Hash })
+        units = {}
 
-        (scope || "").split(",").each do |current_scope|
-          all_units = all_units.merge(Caixanegra.units[current_scope.to_sym])
-        end
-
-        all_units
-      end
-
-      def all_units
-        all_units = {}
-
-        Caixanegra.units.each do |k, v|
-          if v.is_a? Hash
-            v.each do |ik, iv|
-              all_units[ik] = iv
-            end
-          else
-            all_units[k] = v
+        scopes = (scope || "").split(",").map(&:to_sym)
+        Caixanegra.units.each do |unit|
+          if unit.scope.nil? || unit.scope.any? { |checking_scope| scopes.include?(checking_scope) }
+            units[unit.name.demodulize.underscore.to_sym] = unit
           end
         end
 
-        all_units
+        units
+      end
+
+      def all_units
+        units = {}
+
+        Caixanegra.units.each do |unit|
+          units[unit.name.demodulize.underscore.to_sym] = unit
+        end
+
+        units
       end
     end
   end

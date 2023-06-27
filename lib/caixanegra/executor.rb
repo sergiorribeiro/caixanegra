@@ -148,9 +148,11 @@ module Caixanegra
 
       exit_name = result[:exit_through]
       metadata = unit_metadata(@step_unit.oid)
-      log_console_entry "Next unit found through '#{exit_name}': '#{@step_unit.oid}'"
       exit_metadata = metadata[:exits].find { |ex| ex[:name] == exit_name.to_s }
-      unit(exit_metadata[:target], map_carry_over(result))
+      next_unit = unit(exit_metadata[:target], map_carry_over(result))
+      log_console_entry "Next unit found through '#{exit_name}': '#{next_unit.oid}'"
+
+      next_unit
     end
 
     def process_feeders

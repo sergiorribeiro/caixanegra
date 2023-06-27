@@ -119,6 +119,15 @@ $accent-contrast-color: darken($accent-color, 20%);
     transform: translateY(0%);
   }
 
+  .unit-wrapper {
+    .title {
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      font-size: 0.7em;
+      color: rgba(0,0,0,.7);
+      margin-bottom: 5px;
+    }
+  }
+
   .unit {
     display: flex;
     flex-direction: row;

@@ -522,33 +522,63 @@ window.Caixanegra.Designer = {
         this.#catalog = response;
         const unitMenu = document.querySelector("#unitMenu");
         unitMenu.innerHTML = "";
-        this.#catalog.forEach((unitData) => {
-          const item = document.createElement("div");
-          const content = document.createElement("div");
-          const colorCode = document.createElement("div");
-          const header = document.createElement("div");
-          const name = document.createElement("span");
-          const type = document.createElement("span");
-          const description = document.createElement("div");
-          description.classList.add("description");
-          item.classList.add("unit");
-          header.classList.add("header");
-          content.classList.add("content");
-          colorCode.classList.add("color-code");
-          name.classList.add("name");
-          type.classList.add("type");
 
-          name.innerHTML = unitData.title;
-          type.innerHTML = unitData.type;
-          description.innerHTML = unitData.description;
-          colorCode.style.backgroundColor = Caixanegra.Designer.typeColor(unitData.type);
-
-          header.append(name, type);
-          content.append(header, description);
-          item.append(colorCode, content);
-          item.addEventListener("click", this.createUnit.bind(this, unitData));
-          unitMenu.appendChild(item);
+        const scopes = [];
+        
+        this.#catalog.forEach(unit => {
+          if (unit.hasOwnProperty("scope") && Array.isArray(unit.scope)) {
+            scopes.push(...unit.scope);
+          } else {
+            scopes.push("_unscoped");
+          }
         });
+        
+        [...new Set(scopes)].sort().forEach(scope => {
+          const scopeWrapper = document.createElement("div");
+          const scopeTitle = document.createElement("div");
+          const scopeUnits = document.createElement("div");
+
+          scopeWrapper.classList.add("unit-wrapper");
+          scopeTitle.classList.add("title");
+
+          scopeTitle.innerHTML = scope === "_unscoped" ? "unscoped" : scope.replace(/_/g, " ");
+          scopeWrapper.appendChild(scopeTitle);
+          scopeWrapper.appendChild(scopeUnits);
+
+          const filteredUnits = this.#catalog.filter(unit => {
+            return (unit.scope === null && scope === "_unscoped") || (unit.scope || []).includes(scope)
+          });
+
+          filteredUnits.forEach((unitData) => {
+            const item = document.createElement("div");
+            const content = document.createElement("div");
+            const colorCode = document.createElement("div");
+            const header = document.createElement("div");
+            const name = document.createElement("span");
+            const type = document.createElement("span");
+            const description = document.createElement("div");
+            description.classList.add("description");
+            item.classList.add("unit");
+            header.classList.add("header");
+            content.classList.add("content");
+            colorCode.classList.add("color-code");
+            name.classList.add("name");
+            type.classList.add("type");
+  
+            name.innerHTML = unitData.title;
+            type.innerHTML = unitData.type;
+            description.innerHTML = unitData.description;
+            colorCode.style.backgroundColor = Caixanegra.Designer.typeColor(unitData.type);
+  
+            header.append(name, type);
+            content.append(header, description);
+            item.append(colorCode, content);
+            item.addEventListener("click", this.createUnit.bind(this, unitData));
+            scopeUnits.appendChild(item);
+          });
+          unitMenu.appendChild(scopeWrapper);
+        });
+
         this.#loadedComponents.catalog = true;
         this.#reveal();
       });
