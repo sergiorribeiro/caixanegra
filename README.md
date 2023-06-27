@@ -29,13 +29,11 @@ Then, let's create a `caixanegra.rb` initializer (or any name you prefer)
 
 ```ruby
 Caixanegra.setup do |config|
-  config.units = {
-    awesome_unit: Caixanegra::Units::AU,
-    another_awesome_unit: Some::Other::Namespace::AAU,
-    you_can_also: {
-      scope_units: Caixanegra::Units::ScopedUnit,
-    },
-  }
+  config.units = [
+    Caixanegra::Units::AwesomeUnit,
+    Some::Other::Namespace::AnotherAwesomeUnit,
+    Caixanegra::Units::SuperUnit,
+  ]
   config.redis = Redis.new
 end
 ```

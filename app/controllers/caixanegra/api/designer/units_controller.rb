@@ -17,7 +17,8 @@ module Caixanegra
         def units
           @units ||= ::Caixanegra::UnitHelper.scoped_units(unit_scope).map do |k, v|
             base = {
-              title: v.name,
+              scope: v.scope,
+              title: v.unit_name,
               type: v.type,
               description: v.description,
               class: k,

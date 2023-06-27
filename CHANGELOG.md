@@ -6,6 +6,12 @@
 - On the designer, connecting a unit when the canvas is offsetted will no longer miscalculate the mouse position
 - Corrected a bug where the unit pane wasn't dismissed after deleting the unit
 
+## **0.2.0** (2023-06-27)
+- **breaking change** units are no longer configured and scoped with a hash. See wiki
+- Added `configure_scope` to the Unit DSL. This will set the unit scope
+- Unit menu now groups units by their scope
+- Fixed bug where next unit oid was not being correctly logged
+
 # WIP
 - Add `boolean` input data type
 - Add unit color override

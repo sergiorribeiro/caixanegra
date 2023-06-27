@@ -76,8 +76,12 @@ module Caixanegra
       raise(UnitIOException.new, "Unable to fetch input '#{id}'")
     end
 
-    def name
-      self.class.name
+    def scope
+      self.class.scope
+    end
+
+    def unit_name
+      self.class.unit_name
     end
 
     def description
@@ -108,12 +112,16 @@ module Caixanegra
     end
 
     class << self
-      attr_reader :name, :description, :inputs, :exits, :assignments, :type
+      attr_reader :unit_name, :description, :inputs, :exits, :assignments, :type, :scope
 
       @type = :passthrough
 
+      def configure_scope(value)
+        @scope = value
+      end
+
       def configure_name(value)
-        @name = value
+        @unit_name = value
       end
 
       def configure_description(value)
