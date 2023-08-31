@@ -1144,12 +1144,48 @@ window.Caixanegra.Designer = {
               valueInput.addEventListener("change", this.#unitInputValueChanged.bind(this));
             }
             break;
+          case "boolean":
+            {
+              const trueInput = document.createElement("input");
+              const falseInput = document.createElement("input");
+              const trueInputLabel = document.createElement("label");
+              const falseInputLabel = document.createElement("label");
+              const trueRadioGroup = document.createElement("div");
+              const falseRadioGroup = document.createElement("div");
+              trueRadioGroup.classList.add("radio-group");
+              falseRadioGroup.classList.add("radio-group");
+              trueInput.setAttribute("type", "radio");
+              falseInput.setAttribute("type", "radio");
+              trueInput.setAttribute("value", 1);
+              trueInputLabel.innerHTML = "True";
+              falseInput.setAttribute("value", 0);
+              falseInputLabel.innerHTML = "False";
+              trueInput.setAttribute("name", `b${input}`);
+              falseInput.setAttribute("name", `b${input}`);
+              const value = unit.mappings[input]?.value || matrix.default || "0"
+              if (value === "1") { trueInput.setAttribute("checked", true); }
+              if (value === "0") { falseInput.setAttribute("checked", true); }
+              trueInput.addEventListener("change", this.#unitInputValueChanged.bind(this));
+              falseInput.addEventListener("change", this.#unitInputValueChanged.bind(this));
+
+              trueRadioGroup.appendChild(trueInput);
+              trueRadioGroup.appendChild(trueInputLabel);
+              falseRadioGroup.appendChild(falseInput);
+              falseRadioGroup.appendChild(falseInputLabel);
+
+              valueWrapper.appendChild(trueRadioGroup);
+              valueWrapper.appendChild(falseRadioGroup);
+            }
+            break;
         }
 
         if (unit.mappings[input]?.type !== "user") {
           valueWrapper.classList.add("-disabled");
         }
-        valueWrapper.appendChild(valueInput);
+
+        if(valueInput !== null) {
+          valueWrapper.appendChild(valueInput);
+        }
 
         wrapper.append(valueWrapper);
       } else {

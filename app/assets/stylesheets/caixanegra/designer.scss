@@ -597,11 +597,26 @@ $accent-contrast-color: darken($accent-color, 20%);
 
   .unit-input {
     .unit-input-value {
+      display: flex;
+      justify-content: center;
+
       &.-disabled {
         display: none;
 
         input, select {
           pointer-events: none;
+        }
+      }
+
+      .radio-group {
+        display: flex;
+
+        &:first-child {
+          margin-right: 20px;
+        }
+
+        input, label {
+          display: inline;
         }
       }
     }
