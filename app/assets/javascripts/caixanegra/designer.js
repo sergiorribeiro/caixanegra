@@ -3,6 +3,7 @@ window.Caixanegra.Designer = {
     #drawValues;
     title;
     class;
+    color;
     type;
     exits;
     mappings;
@@ -20,6 +21,7 @@ window.Caixanegra.Designer = {
       this.class = params.class || "unspecified";
       this.exits = params.exits || [];
       this.mappings = params.mappings || {};
+      this.color = params.color;
       this.#drawValues = {};
       this.MARGIN = 10;
       this.SNAP = 10;
@@ -36,7 +38,9 @@ window.Caixanegra.Designer = {
 
       this.size.x = this.UNIT_WIDTH;
       let hCursor = this.#drawValues.position.y;
-      this.#drawValues.unitBgColor = Caixanegra.Designer.typeColor(this.type);
+      const typeColor = Caixanegra.Designer.typeColor(this);
+      this.#drawValues.unitBgColor = typeColor.background;
+      this.#drawValues.unitFgColor = typeColor.foreground;
       this.#drawValues.text = {};
       this.#drawValues.exitRectangles = [];
 
@@ -83,25 +87,25 @@ window.Caixanegra.Designer = {
     }
 
     update(context) {
-      if (context.mouse.down && 
+      if (context.mouse.down &&
           context.mouse.down.button === 1 &&
-          context.mouse.down.cursorAt && 
+          context.mouse.down.cursorAt &&
           context.mouse.down.cursorAt.object.oid === this.oid) {
             this.#beingDragged = true;
       } else {
         this.#beingDragged = false;
       }
 
-      if (context.mouse.move && 
+      if (context.mouse.move &&
           context.mouse.move.button === 1 &&
-          context.mouse.down && 
-          context.mouse.down.cursorAt && 
+          context.mouse.down &&
+          context.mouse.down.cursorAt &&
           context.mouse.down.cursorAt.object.oid === this.oid) {
             const intersection = new Sabertooth.Vector2(
               context.mouse.down.cursorAt.intersection.x,
               context.mouse.down.cursorAt.intersection.y
             );
-            
+
             if (this.connectingExit === null) {
               for (let eidx = 0; eidx < this.#drawValues.exits.length; eidx++) {
                 if (this.#drawValues.exits[eidx].rectangle.intersectionPoint(intersection)) {
@@ -180,7 +184,7 @@ window.Caixanegra.Designer = {
         case "extra":
           ctx.beginPath();
           ctx.roundRect(this.#drawValues.position.x, this.#drawValues.position.y, this.size.x, this.size.y, 5);
-          ctx.fillStyle = this.#drawValues.unitBgColor;
+          ctx.fillStyle = `rgb(${this.#drawValues.unitBgColor.r}, ${this.#drawValues.unitBgColor.g}, ${this.#drawValues.unitBgColor.b})`;
           ctx.fill();
 
           ctx.beginPath();
@@ -202,18 +206,20 @@ window.Caixanegra.Designer = {
           );
           ctx.globalCompositeOperation = gco;
 
+          const rgbString = `${this.#drawValues.unitFgColor.r}, ${this.#drawValues.unitFgColor.g}, ${this.#drawValues.unitFgColor.b}`;
+
           ctx.textBaseline = "top";
           ctx.textAlign = "center";
-          ctx.fillStyle = "#000";
+          ctx.fillStyle = `rgb(${rgbString})`;
           ctx.font = "25px Helvetica";
           ctx.fillText(this.title, this.#drawValues.center.x, this.#drawValues.text.title.y, this.UNIT_WIDTH - this.MARGIN * 2);
 
-          ctx.fillStyle = "rgba(0,0,0,0.5)";
+          ctx.fillStyle = `rgba(${rgbString},0.5)`;
           ctx.font = "18px Helvetica";
           ctx.fillText(this.class, this.#drawValues.center.x, this.#drawValues.text.class.y, this.UNIT_WIDTH - this.MARGIN * 2);
 
           ctx.strokeStyle = "#FFF";
-          ctx.fillStyle = "rgba(0,0,0,0.8)";
+          ctx.fillStyle = `rgba(${rgbString},0.8)`;
           ctx.font = "bold 14px monospace";
           ctx.textAlign = "right";
           ctx.lineWidth = 2;
@@ -269,7 +275,7 @@ window.Caixanegra.Designer = {
     selectedUnit;
     flowId;
     unitScope;
-  
+
     constructor(drawingSurface) {
       this.flowId = this.#extractFlowId();
       this.unitScope = this.#extractUnitScope();
@@ -524,7 +530,7 @@ window.Caixanegra.Designer = {
         unitMenu.innerHTML = "";
 
         const scopes = [];
-        
+
         this.#catalog.forEach(unit => {
           if (unit.hasOwnProperty("scope") && Array.isArray(unit.scope)) {
             scopes.push(...unit.scope);
@@ -532,7 +538,7 @@ window.Caixanegra.Designer = {
             scopes.push("_unscoped");
           }
         });
-        
+
         [...new Set(scopes)].sort().forEach(scope => {
           const scopeWrapper = document.createElement("div");
           const scopeTitle = document.createElement("div");
@@ -564,12 +570,13 @@ window.Caixanegra.Designer = {
             colorCode.classList.add("color-code");
             name.classList.add("name");
             type.classList.add("type");
-  
+
             name.innerHTML = unitData.title;
             type.innerHTML = unitData.type;
             description.innerHTML = unitData.description;
-            colorCode.style.backgroundColor = Caixanegra.Designer.typeColor(unitData.type);
-  
+            const typeColor = Caixanegra.Designer.typeColor(unitData).background;
+            colorCode.style.backgroundColor = `rgb(${typeColor.r}, ${typeColor.g}, ${typeColor.b})`;
+
             header.append(name, type);
             content.append(header, description);
             item.append(colorCode, content);
@@ -641,7 +648,7 @@ window.Caixanegra.Designer = {
 
       this.messenger.querySelector(".message").innerHTML = message;
     }
-  
+
     createUnit(params) {
       this.#sequence++;
       const newUnit = new Caixanegra.Designer.Unit({
@@ -649,13 +656,14 @@ window.Caixanegra.Designer = {
         type: params.type,
         title: params.title,
         class: params.class,
+        color: params.color,
         zIndex: this.#sequence
       });
 
       if (params.oid) {
         newUnit.oid = params.oid;
         newUnit.position = new Sabertooth.Vector2(params.position.x, params.position.y);
-        newUnit.title = params.title;  
+        newUnit.title = params.title;
       }
 
       if (params.exits && params.exits.length > 0) {
@@ -687,7 +695,7 @@ window.Caixanegra.Designer = {
       this.#units.push(newUnit);
       this.gre.addObject(newUnit);
     }
-  
+
     removeUnit(oid) {
       const killIndex = this.#units.findIndex((unit) => {return unit.oid === oid});
       this.#units.splice(killIndex, 1);
@@ -796,7 +804,7 @@ window.Caixanegra.Designer = {
       const endObject = moments.end.cursorAt?.object;
 
       if (startObject && endObject &&
-          startObject?.connectingExit && 
+          startObject?.connectingExit &&
           startObject.oid !== endObject.oid) {
             startObject.connectingExit.reference.target = moments.end.cursorAt.object;
             startObject.connectingExit = null;
@@ -902,7 +910,7 @@ window.Caixanegra.Designer = {
         header.classList.add("hit-header");
         header.innerHTML = `hit #${idx + 1}`;
         hitWrapper.append(header);
-        
+
         let section = this.#buildStepHitFold("in", hit.in);
         if (section !== null) { hitWrapper.append(section); }
 
@@ -922,7 +930,8 @@ window.Caixanegra.Designer = {
       const pane = this.unitDetailPane;
       const debugPane = this.unitDebugHitsPane;
       const dynamicContent = pane.querySelector("#dynamicContent");
-      pane.querySelector(".color-code").style.backgroundColor = Caixanegra.Designer.typeColor(object.type);
+      const typeColor = Caixanegra.Designer.typeColor(object).background;
+      pane.querySelector(".color-code").style.backgroundColor = `rgb(${typeColor.r}, ${typeColor.g}, ${typeColor.b})`;
       pane.classList.add("-open");
 
       if (object.debugHits.length > 0) {
@@ -932,7 +941,7 @@ window.Caixanegra.Designer = {
         debugPane.querySelector("#debugData").innerHTML = "";
         debugPane.classList.remove("-open");
       }
-      
+
       pane.querySelector("#unitDetailTitle").value = object.title;
       pane.querySelector("#unitDetailClass .name").innerHTML = matrix.class;
       pane.querySelector("#unitDetailDescription").innerHTML = matrix.description;
@@ -1112,7 +1121,7 @@ window.Caixanegra.Designer = {
         });
         typeSelector.addEventListener("change", this.#unitInputTypeChanged.bind(this));
         typeSelectorHeader.append(name, typeSelector);
-        
+
         wrapper.appendChild(typeSelectorHeader);
         wrapper.appendChild(fieldDescription);
 
@@ -1248,12 +1257,12 @@ window.Caixanegra.Designer = {
       const exitMappings = {};
 
       Array.from(exits).forEach((exit) => {
-        exitMappings[exit.dataset.exit] = 
+        exitMappings[exit.dataset.exit] =
           Array.from(exit.querySelectorAll(".exit-mapping")).map((mapping) => {
             const useValue = mapping.querySelector("input.use").value;
             const asValue = mapping.querySelector("input.as").value;
             return { use: useValue, as: asValue };
-          });        
+          });
       });
 
       for(let idx = 0; idx < unit.exits.length; idx++) {
@@ -1298,9 +1307,9 @@ window.Caixanegra.Designer = {
     #engineUpdate(ev) {
       const context = ev.detail;
 
-      if (context.mouse.move && 
+      if (context.mouse.move &&
           [1, 2].includes(context.mouse.move.button) &&
-          context.mouse.down && 
+          context.mouse.down &&
           context.mouse.down.cursorAt === null) {
         const offset = {
           x: context.mouse.move.internal_x - context.mouse.down.internal_x,
@@ -1309,7 +1318,7 @@ window.Caixanegra.Designer = {
 
         this.gre.worldCenter.x = context.mouse.down.referential.x + offset.x;
         this.gre.worldCenter.y = context.mouse.down.referential.y + offset.y;
-        
+
         for (let oidx = 0; oidx < context.objects.length; oidx++) {
           context.objects[oidx].initialize(this.gre.engineContext());
         }
@@ -1324,23 +1333,51 @@ window.Caixanegra.Designer = {
     }
   },
 
-  typeColor: (type) => {
-    switch (type) {
-      case "starter":
-        return "#65CCA9";
-      case "terminator":
-        return "#E44";
-      case "blackbox":
-        return "#EEE";
-      case "passthrough":
-        return "#c4c66a";
-      case "fork":
-        return "#ffcc5c"
-      case "feeder":
-        return "#5a92d8";
-      default:
-        return "#FFF";
+  typeColor: (unit) => {
+    let baseColor = unit.color || undefined;
+
+    if (baseColor === undefined) {
+      switch (unit.type) {
+        case "starter":
+          baseColor = "#65CCA9";
+          break;
+        case "terminator":
+          baseColor = "#E44";
+          break;
+        case "blackbox":
+          baseColor = "#EEE";
+          break;
+        case "passthrough":
+          baseColor = "#C4C66A";
+          break;
+        case "fork":
+          baseColor = "#FFCC5C"
+          break;
+        case "feeder":
+          baseColor = "#5A92D8";
+          break;
+        default:
+          baseColor = "#F00";
+          break;
+      }
     }
+
+    hex = baseColor.replace("#", "");
+
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+    return {
+      background: { r, g, b },
+      foreground: luminance > 0.5 ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 }
+    };
   }
 }
 

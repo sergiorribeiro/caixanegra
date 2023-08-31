@@ -100,6 +100,10 @@ module Caixanegra
       self.class.set || []
     end
 
+    def color
+      self.class.color
+    end
+
     private
 
     def set_mapping_defaults
@@ -112,7 +116,16 @@ module Caixanegra
     end
 
     class << self
-      attr_reader :unit_name, :description, :inputs, :exits, :assignments, :type, :scope
+      attr_reader(
+        :unit_name,
+        :description,
+        :inputs,
+        :exits,
+        :assignments,
+        :type,
+        :scope,
+        :color
+      )
 
       @type = :passthrough
 
@@ -142,6 +155,10 @@ module Caixanegra
 
       def configure_assignments(assignments)
         @assignments = assignments
+      end
+
+      def configure_color(color)
+        @color = color
       end
     end
   end
