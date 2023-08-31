@@ -12,6 +12,8 @@
 - Unit menu now groups units by their scope
 - Fixed bug where next unit oid was not being correctly logged
 
-# WIP
-- Add `boolean` input data type
-- Add unit color override
+## **0.3.0** (2023-08-31)
+- New input data type added: `boolean`
+- Unit color overrides with luminance calculation by adding `configure_color` to the Unit DSL
+- Enhanced unit exception report
+- **breaking change** removed Redis dependency in favor of an arbitrary transient store
