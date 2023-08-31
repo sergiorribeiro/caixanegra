@@ -2,7 +2,7 @@
 
 module Caixanegra
   self.mattr_accessor :units
-  self.mattr_accessor :redis
+  self.mattr_accessor :transient_store
   self.units = []
 
   def self.setup(&block)
