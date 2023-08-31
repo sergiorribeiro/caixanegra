@@ -73,7 +73,7 @@ module Caixanegra
 
       input_value.presence || @inputs[id][:default]
     rescue StandardError
-      raise(UnitIOException.new, "Unable to fetch input '#{id}'")
+      raise(UnitIOException.new(self), "Unable to fetch input '#{id}'")
     end
 
     def scope

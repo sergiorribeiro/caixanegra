@@ -29,9 +29,9 @@ module Caixanegra
       log_console_entry 'Started'
       set_start_unit
       format_result(flow_through)
-    rescue Caixanegra::UnitScopedException => e
+    rescue Caixanegra::UnitScopedException, Caixanegra::UnitIOException => e
       log_step_exception(e)
-      log_console_entry("Unit error: #{e.message}")
+      log_console_entry("Unit '#{e.unit.oid}' error: #{e.message}")
       format_result(e.message)
     rescue => e
       log_console_entry("Error: #{e.message}")
@@ -107,7 +107,7 @@ module Caixanegra
           @storage.merge! @step_unit.current_storage
           result
         rescue => e
-          exception = Caixanegra::UnitScopedException.new(e)
+          exception = Caixanegra::UnitScopedException.new(e, @step_unit)
           exception.set_backtrace(e.backtrace)
           raise exception
         end
