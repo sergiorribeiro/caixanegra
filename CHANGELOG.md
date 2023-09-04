@@ -23,3 +23,6 @@
 
 ## **0.3.2** (2023-09-04)
 - Fixed inflection polution
+
+## **0.3.3** (2023-09-04)
+- Fixed manager handler
