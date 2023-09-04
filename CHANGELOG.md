@@ -20,3 +20,6 @@
 
 ## **0.3.1** (2023-09-04)
 - Fixed Caixanegra::Unit location
+
+## **0.3.2** (2023-09-04)
+- Fixed inflection polution

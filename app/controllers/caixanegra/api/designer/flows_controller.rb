@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module Caixanegra
-  module Api
+  module API
     module Designer
-      class FlowsController < ::Caixanegra::ApiController
+      class FlowsController < ::Caixanegra::APIController
         before_action :set_flow, only: %i[show debug_run]
 
         def show
