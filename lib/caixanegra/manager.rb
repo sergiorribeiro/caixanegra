@@ -7,7 +7,7 @@ module Caixanegra
         transient_store = Caixanegra.transient_store
         uid = transient_store.new_uid
 
-        transient_store.hold(uid, flow_definition)
+        transient_store.hold(uid, definition: flow_definition)
 
         uid
       end
