@@ -17,3 +17,6 @@
 - Unit color overrides with luminance calculation by adding `configure_color` to the Unit DSL
 - Enhanced unit exception report
 - **breaking change** removed Redis dependency in favor of an arbitrary transient store
+
+## **0.3.1** (2023-09-04)
+- Fixed Caixanegra::Unit location
