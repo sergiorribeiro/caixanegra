@@ -6,8 +6,13 @@ module Caixanegra
 
         scopes = (scope || "").split(",").map(&:to_sym)
         Caixanegra.units.each do |unit|
-          if unit.scope.nil? || unit.scope.any? { |checking_scope| scopes.include?(checking_scope) }
-            units[unit.name.demodulize.underscore.to_sym] = unit
+          unit_scope = unit.is_a?(Array) ? unit[0].scope : unit.scope
+          if unit_scope.nil? || unit_scope.any? { |checking_scope| scopes.include?(checking_scope) }
+            if unit.is_a? Array
+              units[unit[1]] = unit[0]
+            else
+              units[unit.name.demodulize.underscore.to_sym] = unit
+            end
           end
         end
 
@@ -18,7 +23,11 @@ module Caixanegra
         units = {}
 
         Caixanegra.units.each do |unit|
-          units[unit.name.demodulize.underscore.to_sym] = unit
+          if unit.is_a? Array
+            units[unit[1]] = unit[0]
+          else
+            units[unit.name.demodulize.underscore.to_sym] = unit
+          end
         end
 
         units

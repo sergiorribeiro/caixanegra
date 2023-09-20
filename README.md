@@ -32,11 +32,14 @@ Caixanegra.setup do |config|
   config.units = [
     Caixanegra::Units::AwesomeUnit,
     Some::Other::Namespace::AnotherAwesomeUnit,
-    Caixanegra::Units::SuperUnit,
+    [Caixanegra::Units::NamespaceOne::SuperUnit, :ns1_super_unit],
+    [Caixanegra::Units::NamespaceTwo::SuperUnit, :ns2_super_unit],
   ]
   config.transient_store = GreatTransientStore.new
 end
 ```
+While configuring units from your codebase, if provided in the array form, **caixanegra** will use the second array item as the class name. Otherwise it will infer from class.  
+**NOTE:** You can't have two classes with the same name as **caixanegra** will use the last one
 
 With the designer configured, you can use `Caixanegra::Manager` to handle the previously stored definition (or an empty one).  
 This will give you the UID that **caixanegra** designer will understand, using transient store.  

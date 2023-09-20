@@ -7,7 +7,7 @@
 - Corrected a bug where the unit pane wasn't dismissed after deleting the unit
 
 ## **0.2.0** (2023-06-27)
-- **breaking change** units are no longer configured and scoped with a hash. See wiki
+- **breaking change** Units are no longer configured and scoped with a hash. See wiki
 - Added `configure_scope` to the Unit DSL. This will set the unit scope
 - Unit menu now groups units by their scope
 - Fixed bug where next unit oid was not being correctly logged
@@ -16,7 +16,7 @@
 - New input data type added: `boolean`
 - Unit color overrides with luminance calculation by adding `configure_color` to the Unit DSL
 - Enhanced unit exception report
-- **breaking change** removed Redis dependency in favor of an arbitrary transient store
+- **breaking change** Removed Redis dependency in favor of an arbitrary transient store
 
 ## **0.3.1** (2023-09-04)
 - Fixed Caixanegra::Unit location
@@ -26,3 +26,13 @@
 
 ## **0.3.3** (2023-09-04)
 - Fixed manager handler
+
+## **0.3.4** (2023-09-20)
+- Inferred unit class can now be overriden by providng the unit as an array `[unit_class, :class_name_override]`
+- On the designer, new units will snap to the pane offset instead of a fixed position
+
+## WIP ##
+- Pass initial carryover when building links
+- Export/Import initial carry over on the designer
+- Add duplicate unit, which will create another next to it
+- Export/Import flow on the designer
