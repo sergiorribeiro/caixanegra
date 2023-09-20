@@ -652,7 +652,10 @@ window.Caixanegra.Designer = {
     createUnit(params) {
       this.#sequence++;
       const newUnit = new Caixanegra.Designer.Unit({
-        position: new Sabertooth.Vector2(20, 20),
+        position: new Sabertooth.Vector2(
+          -this.gre.worldCenter.x + 20,
+          -this.gre.worldCenter.y + 20
+        ),
         type: params.type,
         title: params.title,
         class: params.class,
