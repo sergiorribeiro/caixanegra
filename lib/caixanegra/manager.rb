@@ -3,7 +3,7 @@
 module Caixanegra
   class Manager
     class << self
-      def handler(flow_definition = {})
+      def handler(flow_definition: {})
         transient_store = Caixanegra.transient_store
         uid = transient_store.new_uid
 

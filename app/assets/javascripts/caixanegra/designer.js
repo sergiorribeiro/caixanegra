@@ -303,6 +303,10 @@ window.Caixanegra.Designer = {
       document.querySelector("#console").addEventListener("click", this.toggleExecutionConsole.bind(this));
       document.querySelector("#clearCarryOverObject").addEventListener("click", this.clearCarryOverObject.bind(this));
       document.querySelector("#reset").addEventListener("click", this.resetExecution.bind(this));
+      document.querySelector("#duplicate").addEventListener("click", this.duplicateUnit.bind(this));
+      document.querySelector("#importFlow").addEventListener("click", this.#importFlow.bind(this));
+      document.querySelector("#exportFlow").addEventListener("click", this.#exportFlow.bind(this));
+      document.querySelector("#importFlowFile").addEventListener("change", this.#importFlowFileChanged.bind(this));
       this.toggleBlocker(true, "loading your flow");
       window.addEventListener("resize", this.#windowResized.bind(drawingSurface));
       drawingSurface.addEventListener("update_start", this.#engineUpdate.bind(this));
@@ -385,6 +389,8 @@ window.Caixanegra.Designer = {
       }
 
       container.append(wrapper);
+
+      return wrapper;
     }
 
     deleteUnit() {
@@ -392,6 +398,12 @@ window.Caixanegra.Designer = {
       this.unitDebugHitsPane.classList.remove("-open");
       this.removeUnit(this.selectedUnit.oid);
       this.toggleDeleteConfirmation();
+    }
+
+    duplicateUnit() {
+      this.unitDetailPane.classList.remove("-open");
+      this.unitDebugHitsPane.classList.remove("-open");
+      this.cloneUnit(this.selectedUnit.oid);
     }
 
     flushToConsole(entries) {
@@ -468,7 +480,8 @@ window.Caixanegra.Designer = {
     flowSnapshot() {
       const snapshot = {
         entrypoint: this.#units.find((unit) => {return unit.type === "starter"})?.oid,
-        units: []
+        units: [],
+        initialCarryover: this.digInitialCarryOver(document.querySelector("#carryOverObject"))
       };
 
       this.#units.forEach((unit) => {
@@ -587,33 +600,81 @@ window.Caixanegra.Designer = {
         });
 
         this.#loadedComponents.catalog = true;
-        this.#reveal();
+        this.reveal();
       });
     }
 
     loadFlow() {
       this.api.getFlow(this.flowId).then((response) => {
         const flowData = response;
-        this.gre.clear();
-        this.#units = [];
 
-        (flowData?.units || []).forEach((unit) => {
-          this.createUnit(unit);
-        });
-
-        this.#units.forEach((unit) => {
-          (unit?.exits || []).forEach((exit) => {
-            const object = this.#units.find((targetUnit) => targetUnit.oid === exit.target);
-            if (object) { exit.target = object; }
-          });
-        });
+        this.#loadFlowFromJSON(flowData);
 
         this.#loadedComponents.flow = true;
-        this.#reveal();
+        this.reveal();
       });
     }
 
-    #reveal() {
+    #loadFlowFromJSON(flowData) {
+      this.gre.clear();
+      this.#units = [];
+
+      (flowData?.units || []).forEach((unit) => {
+        this.createUnit(unit);
+      });
+
+      this.#units.forEach((unit) => {
+        (unit?.exits || []).forEach((exit) => {
+          const object = this.#units.find((targetUnit) => targetUnit.oid === exit.target);
+          if (object) { exit.target = object; }
+        });
+      });
+
+      this.buildInitialCarryover(flowData.initialCarryover);
+    }
+
+    digBuildInitialCarryover(container, key, objectPointer) {
+      const lastChild = container.childNodes[container.childNodes.length -1];
+
+      if (key !== null) {
+        container.childNodes[0].querySelector("input").value = key;
+      }
+
+      if (Array.isArray(objectPointer)) {
+        this.coeAssignType(lastChild, "array");
+
+        for (let idx = 0; idx < objectPointer.length; idx++) {
+          this.digBuildInitialCarryover(
+            this.coeAddRow(container.querySelector(".rows")),
+            null,
+            objectPointer[idx]
+          );
+        }
+      } else if (typeof objectPointer === "object") {
+        this.coeAssignType(lastChild, "object");
+
+        for (const key in objectPointer) {
+          this.digBuildInitialCarryover(this.coeAddRow(container.querySelector(".rows")), key, objectPointer[key]);
+        }
+      } else if (typeof objectPointer === "number") {
+        this.coeAssignType(lastChild, "number");
+        lastChild.querySelector("input").value = objectPointer;
+      } else {
+        this.coeAssignType(lastChild, "string");
+        lastChild.querySelector("input").value = objectPointer;
+      }
+    }
+
+    buildInitialCarryover(initialCarryover) {
+      this.clearCarryOverObject();
+      const base = document.querySelector("#carryOverObject > .rows");
+
+      for (const key in initialCarryover) {
+        this.digBuildInitialCarryover(this.coeAddRow(base), key, initialCarryover[key]);
+      }
+    }
+
+    reveal() {
       if (this.#loadedComponents.flow && this.#loadedComponents.catalog) {
         this.toggleBlocker(false);
       }
@@ -713,6 +774,21 @@ window.Caixanegra.Designer = {
       });
     }
 
+    cloneUnit(oid) {
+      const unit = this.#units.find((unit) => unit.oid === oid);
+      const dup = this.#dupObject(unit);
+      
+      dup.oid = Sabertooth.Utils.generateOId();
+      dup.position = { x: unit.position.x + 25, y: unit.position.y + 25 };
+      dup.title = `${dup.title} (copy)`;
+      
+      dup.exits.forEach(exit => {
+        delete exit.target;
+      });
+
+      this.createUnit(dup);
+    }
+
     showError(message) {
       this.actionMessage(true, message, "error");
       setTimeout(() => {this.actionMessage(false)}, 5000);
@@ -760,6 +836,73 @@ window.Caixanegra.Designer = {
       document.querySelector("#configure").style.display = "block";
       this.unitDetailPane.classList.remove("-open");
       this.unitDebugHitsPane.classList.remove("-open");
+    }
+
+    #dupObject(obj) {
+      if (typeof obj !== 'object' || obj === null) {
+        return obj;
+      }
+    
+      const clonedObject = Array.isArray(obj) ? [] : {};
+      
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          clonedObject[key] = this.#dupObject(obj[key]);
+        }
+      }
+    
+      return clonedObject;
+    }
+
+    #importFlow() {
+       document.querySelector("#importFlowFile").click();
+    }
+
+    #importFlowFileChanged() {
+      const fileInput = document.querySelector("#importFlowFile");
+
+      if (fileInput.files.length === 0) {
+        return;
+      }
+
+      const selectedFile = fileInput.files[0];
+      const reader = new FileReader();
+    
+      reader.onload = (event) => {
+        this.toggleBlocker(true, "importing your flow");
+        this.gre.disable();
+        const flowBackup = this.flowSnapshot();
+
+        try {
+          this.#loadFlowFromJSON(JSON.parse(event.target.result));
+
+          this.actionMessage(true, "Flow imported", "ok");
+          setTimeout(() => {this.actionMessage(false)}, 4000);
+        } catch (error) {
+          this.#loadFlowFromJSON(flowBackup);
+
+          this.actionMessage(true, "Failed to import flow. Rolled back", "error");
+          setTimeout(() => {this.actionMessage(false)}, 4000);
+        }
+        
+        this.gre.enable();
+        this.reveal();
+      };
+    
+      reader.readAsText(selectedFile);
+    }
+
+    #exportFlow() {
+      const blob = new Blob([JSON.stringify(this.flowSnapshot())], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = "flow_definition.cxn";
+      link.click();
+      URL.revokeObjectURL(url);
+
+      this.actionMessage(true, "Flow exported", "ok");
+      setTimeout(() => {this.actionMessage(false)}, 4000);
     }
 
     #executeFlow() {

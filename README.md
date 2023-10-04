@@ -46,7 +46,7 @@ This will give you the UID that **caixanegra** designer will understand, using t
 
 ```ruby
 my_flow = somewhere.get_flow # get from your own persistence or transport solution
-uid = Caixanegra::Manager.handler(my_flow || {})
+uid = Caixanegra::Manager.handler(flow_definition: my_flow || {})
 ```
 
 You can then safely navigate to the designer.
