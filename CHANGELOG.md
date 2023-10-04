@@ -31,8 +31,8 @@
 - Inferred unit class can now be overriden by providng the unit as an array `[unit_class, :class_name_override]`
 - On the designer, new units will snap to the pane offset instead of a fixed position
 
-## WIP ##
-- Pass initial carryover when building links
-- Export/Import initial carry over on the designer
-- Add duplicate unit, which will create another next to it
-- Export/Import flow on the designer
+## **0.4.0** (2023-10-04)
+- **breaking change** `Manager#handler` signature changed to named parameter
+- Units can now be duplicated
+- Flows can now be exported to file and imported
+- Initial carryover will now persist in the flow descriptor

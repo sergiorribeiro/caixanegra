@@ -3,6 +3,10 @@ $accent-color: rgb(105, 105, 105);
 $accent-highlight-color: lighten($accent-color, 20%);
 $accent-contrast-color: darken($accent-color, 20%);
 
+#importFlowFile {
+  display: none;
+}
+
 #execution {
   position: fixed;
   display: flex;
@@ -34,6 +38,33 @@ $accent-contrast-color: darken($accent-color, 20%);
 
   #console {
     display: none;
+  }
+}
+
+#io {
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  bottom: 8px;
+  right: 8px;
+
+  div {
+    cursor: pointer;
+    transition: all 250ms ease-in-out;
+    height: 18px;
+    width: 18px;
+    margin-left: 8px;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    svg {
+      path, polygon, line, polyline {
+        fill: white;
+        stroke: white;
+      }
+    }
   }
 }
 
@@ -649,10 +680,25 @@ $accent-contrast-color: darken($accent-color, 20%);
       flex-direction: row;
       justify-content: space-between;
 
-      .name {
-        font-size: 1em;
-        font-weight: bold;
+      .name-holder {
         width: 100%;
+        display: flex;
+        flex-direction: row;
+
+        .name {
+          font-size: 1em;
+          font-weight: bold;
+        }
+
+        #duplicate {
+          margin-left: 5px;
+          width: 10px;
+          cursor: pointer;
+
+          svg path {
+            fill: $accent-contrast-color;
+          }
+        }
       }
 
       .delete {
