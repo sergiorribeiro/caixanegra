@@ -620,6 +620,10 @@ window.Caixanegra.Designer = {
       this.#units = [];
 
       (flowData?.units || []).forEach((unit) => {
+        const catalogUnit = this.#catalog.find((cUnit) => cUnit.class === unit.class);
+        if (catalogUnit) {
+          unit.color = catalogUnit.color;
+        }
         this.createUnit(unit);
       });
 
