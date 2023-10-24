@@ -36,3 +36,7 @@
 - Units can now be duplicated
 - Flows can now be exported to file and imported
 - Initial carryover will now persist in the flow descriptor
+
+## **0.4.1** (2023-10-24)
+- Fixed unit color override when loading flows from JSON
+- Added a regex editor for `regex` unit input types

@@ -66,4 +66,20 @@ window.Caixanegra.API = class {
       request.send(JSON.stringify(initialCarryOver));
     });
   }
+
+  evaluateRegex(expression, sample) {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+
+      request.addEventListener("load", (event) => {
+        resolve(JSON.parse(event.target.response));
+      });
+      request.addEventListener("error", () => {
+        reject();
+      });
+
+      request.open("GET", `${this.mountedPath()}/api/designer/inputs/evaluate_regex?expression=${encodeURIComponent(expression)}&sample=${encodeURIComponent(sample)}`);
+      request.send();
+    });
+  }
 }

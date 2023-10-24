@@ -307,6 +307,11 @@ window.Caixanegra.Designer = {
       document.querySelector("#importFlow").addEventListener("click", this.#importFlow.bind(this));
       document.querySelector("#exportFlow").addEventListener("click", this.#exportFlow.bind(this));
       document.querySelector("#importFlowFile").addEventListener("change", this.#importFlowFileChanged.bind(this));
+      document.querySelector("#regexInput").addEventListener("keyup", this.#updateRegexInput.bind(this));
+      document.querySelector("#regexSample").addEventListener("keyup", this.#startRegexEvaluation.bind(this));
+      document.querySelector("#addRegexVariables").addEventListener("click", this.#addRegexVariablesRow.bind(this))
+      document.querySelector("#regexEditorToggleVars").addEventListener("click", this.#toggleRegexVariables.bind(this));
+      document.querySelector("#dismissRegexEditor").addEventListener("click", this.#dismissRegexEditor.bind(this));
       this.toggleBlocker(true, "loading your flow");
       window.addEventListener("resize", this.#windowResized.bind(drawingSurface));
       drawingSurface.addEventListener("update_start", this.#engineUpdate.bind(this));
@@ -319,7 +324,6 @@ window.Caixanegra.Designer = {
 
       this.gre.disable();
       this.getUnits();
-      this.loadFlow();
       this.gre.enable();
     }
 
@@ -600,7 +604,7 @@ window.Caixanegra.Designer = {
         });
 
         this.#loadedComponents.catalog = true;
-        this.reveal();
+        this.loadFlow();
       });
     }
 
@@ -1282,9 +1286,10 @@ window.Caixanegra.Designer = {
           case "regex":
             {
               valueInput = document.createElement("input");
-              if(matrix.type === "regex") { valueInput.classList.add("-monospace")}
+              if(matrix.type === "regex") { valueInput.classList.add("-regex")}
               valueInput.value = unit.mappings[input]?.value || matrix.default || "";
               valueInput.addEventListener("change", this.#unitInputValueChanged.bind(this));
+              valueInput.addEventListener("click", this.#regexEditor.bind(this));
             }
             break;
           case "dataset":
@@ -1382,6 +1387,125 @@ window.Caixanegra.Designer = {
       const input = valueWrapper.dataset.input;
       this.selectedUnit.mappings[input] = this.selectedUnit.mappings[input] || {};
       this.selectedUnit.mappings[input].value = ev.target.value;
+    }
+
+    #toggleRegexVariables() {
+      const target = document.querySelector("#blocker .regexEditor > div:last-child");
+      if(target.classList.contains("-visible")) {
+        target.classList.remove("-visible");
+      } else {
+        target.classList.add("-visible");
+      }
+    }
+
+    #updateRegexInput() {
+      this.blocker.editorListener.value = this.blocker.querySelector("#regexInput").value;
+
+      this.#startRegexEvaluation();
+    }
+
+    #startRegexEvaluation() {
+      window.clearTimeout(this.blocker.evalTimeout);
+      this.blocker.querySelector("#regexResults").innerHTML = "wating input end...";
+      this.blocker.evalTimeout = window.setTimeout(this.#evaluateRegex.bind(this), 1500);
+    }
+
+    #evaluateRegex() {
+      this.blocker.querySelector("#regexResults").innerHTML = "evaluating...";
+      let expression = this.blocker.querySelector("#regexInput").value;
+      const sample = this.blocker.querySelector("#regexSample").value;
+      document.querySelectorAll("#regexVariablesList .regex-variable-entry").forEach((pair) => {
+        const placeholder = pair.querySelector("input.placeholder").value;
+        const value = pair.querySelector("input.value").value;
+        expression = expression.replace(new RegExp(placeholder, "g"), value);
+      });
+
+      this.api.evaluateRegex(expression, sample).then((response) => {
+        const tableEntries = Object.keys(response).length - 2 > 0;
+
+        this.blocker.querySelector("#regexResults").innerHTML = "";
+        const expression = document.createElement("div");
+        const full_match = document.createElement("div");
+        expression.innerHTML = `<strong>Expression: </strong><code>${response["_expression"] || "unable to get expression"}</code>`;
+        full_match.innerHTML = `<strong>Full Match: </strong><code>${response["_full"] || "unable to get full match"}</code>`;
+        
+        this.blocker.querySelector("#regexResults").append(expression, full_match);
+
+        if (tableEntries) {
+          const table = document.createElement("table");
+          let tr = document.createElement("tr");
+          let th = document.createElement("th");
+          th.innerHTML = "capture";
+          tr.append(th);
+          th = document.createElement("th");
+          th.innerHTML = "match";
+          tr.append(th);
+          table.append(tr);
+
+          for (const key of Object.keys(response)) {
+            if (key.startsWith("_")) { continue; }
+
+            tr = document.createElement("tr");
+            let td = document.createElement("td");
+            td.innerHTML = key;
+            tr.append(td);
+            td = document.createElement("td");
+            td.innerHTML = response[key];
+            tr.append(td);
+
+            table.append(tr);
+          }
+
+          this.blocker.querySelector("#regexResults").append(table);
+        }
+      }).catch((error) => {
+        this.blocker.querySelector("#regexResults").innerHTML = "unable to evaluate";
+      });
+    }
+
+    #regexEditor(ev) {
+      this.blocker.classList.add("-in-regex-editor");
+      this.blocker.classList.remove("-released");
+      this.blocker.editorListener = ev.target;
+      this.blocker.querySelector("#regexInput").value = ev.target.value;
+
+      this.#startRegexEvaluation();
+    }
+
+    #dismissRegexEditor() {
+      this.blocker.classList.remove("-in-regex-editor");
+      this.blocker.classList.add("-released");
+    }
+
+    #removeRegexVariable() {
+      this.parentElement.remove();
+    }
+
+    #addRegexVariablesRow() {
+      const list = document.querySelector("#regexVariablesList");
+
+      const wrapper = document.createElement("div");
+      const name = document.createElement("input");
+      const value = document.createElement("input");
+      const remove = document.createElement("button");
+
+      name.placeholder = "placeholder";
+      name.classList.add("placeholder");
+      value.classList.add("value");
+      name.autocomplete=false;
+      value.autocomplete=false;
+      value.placeholder = "value";
+      remove.innerHTML = "-";
+
+      remove.addEventListener("click", this.#removeRegexVariable.bind(remove));
+
+      name.addEventListener("keyup", this.#startRegexEvaluation.bind(this));
+      value.addEventListener("keyup", this.#startRegexEvaluation.bind(this));
+
+      wrapper.classList.add("regex-variable-entry");
+
+      wrapper.append(name, value, remove);
+      list.append(wrapper);
     }
 
     #addUnitExitMapping(ev) {

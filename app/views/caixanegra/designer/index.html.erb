@@ -108,6 +108,27 @@
     <div>caixa<span>negra</span></div>
     <div class="message">loading your flow</div>
   </div>
+  <div class="regexEditor">
+    <div>
+      <label for="regexInput">Regular Expression</label>
+      <input id="regexInput" type="text" />
+      <label for="regexSample" placeholder="type sample text here">Sample</label>
+      <input id="regexSample" type="text" /> 
+      <label for="regexResults">Result</label>  
+      <div id="regexResults"></div>
+      <div>
+        <button id="dismissRegexEditor">dismiss</button>
+        <button id="regexEditorToggleVars">vars</button>
+      </div>
+    </div>
+    <div>
+      <label for="regexVariables">Variables</label>
+      <div id="regexVariables">
+        <div id="regexVariablesList"></div>
+        <button id="addRegexVariables">add</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div id="action_messenger">
   <div class="icon icon-error">

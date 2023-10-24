@@ -9,6 +9,9 @@ Caixanegra::Engine.routes.draw do
           patch :debug_run
         end
       end
+      namespace :inputs do
+        get :evaluate_regex
+      end
     end
   end
 end
